@@ -15,9 +15,8 @@ library(data.table)
 library(gtools)
 library(EnsDb.Mmusculus.v79)
 
-source("/data/linkage/MESA2/Projects/2019-RNA-seq/linear-regression_rna-seq/gene_filters.R")
-source("/data/linkage/MESA2/Projects/2019-RNA-seq/linear-regression_rna-seq/Utils.R")
-source("/data/linkage/MESA2/Projects/2019-RNA-seq/linear-regression_rna-seq/method.R")
+source("Utils.R")
+source("Method.R")
 
 
 argp <- arg_parser("Run LR with Residual Normalizations")

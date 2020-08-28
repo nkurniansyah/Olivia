@@ -17,7 +17,7 @@ library(EnsDb.Mmusculus.v79)
 
 
 source("Utils.R")
-source("method.R")
+source("Method.R")
 
 argp <- arg_parser("Run LR with Residual Normalizations")
 argp <- add_argument(argp, "config", help="path to config file")
