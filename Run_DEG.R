@@ -88,6 +88,16 @@ storage.mode(mat)<-"numeric"
 #dim(mat)
 
 organism<-config["organism"]
+
+
+
+if(organism=="Mmusculus"){
+  orgDB<-EnsDb.Mmusculus.v79
+}else if(organism=="Hsapiens"){
+  orgDB<-EnsDb.Hsapiens.v86
+}
+
+
 median_val<- as.numeric(config["median_val"])
 cv_max<- as.numeric(config["cv_max"])
 cv_min<- as.numeric(config["cv_min"])
@@ -183,7 +193,7 @@ if(!is.na(list_geneID)){
   list_geneID<- as.vector(list_geneID$V1)
   results<- run_linear_regression(count_matrix = genes_filter_mat, pheno =pheno,trait = trait ,covariates_string = covariates_string,log_transform = log_replace_min, list_geneID = list_geneID)
   head(results) 
-  gene_symbol<- select(EnsDb.Hsapiens.v86, keys =as.character(results$GeneID) , keytype = "GENEID",
+  gene_symbol<- select(orgDB, keys =as.character(results$GeneID) , keytype = "GENEID",
                        columns = c("GENEID", "GENENAME"))
   
   head(gene_symbol)
@@ -331,11 +341,6 @@ if(!is.na(list_geneID)){
   
   
   #unknown_genes<- deg_avgsat %>% dplyr::filter(str_detect(gene_names,"ENS"))
-  if(organism=="Mmusculus"){
-    orgDB<-EnsDb.Mmusculus.v79
-  }else if(organism=="Hsapiens"){
-    orgDB<-EnsDb.Hsapiens.v86
-  }
   
   gene_symbol<- select(orgDB, keys =as.character(emp_pvals_df$GeneID) , keytype = "GENEID",
                        columns = c("GENEID", "GENENAME"))
