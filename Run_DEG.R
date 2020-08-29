@@ -58,14 +58,9 @@ trait <- as.character(config["trait"])
 start.time <- Sys.time()
 
 
-#pheno<- read.csv("/Volumes/linkage/MESA2/Projects/2019-RNA-seq/RNAseq/Data/2020-08-28_pheno.csv")
 pheno<- read.csv(config["pheno_file"])
 head(pheno)
 #pheno<- pheno %>% dplyr::rename(ID=TOR_ID)
-
-
-#mat<- fread("/Volumes/linkage/MESA2/Projects/2019-RNA-seq/RNAseq/Data/GSE156437_RNA_seq.txt", data.table = F)
-## in RData
 
 
 
