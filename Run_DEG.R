@@ -170,7 +170,7 @@ dim(genes_filter_mat)
 
 #head(pheno)
 
-#no space in covariantes string: Age,BMI,Sex
+#no space in covariates string: Age,BMI,Sex
 
 covariates_string<- as.character(config["covariates_string"])
 print(covariates_string)
