@@ -1,79 +1,10 @@
 
 
 
-#' Title: Fast linear regression of each of gene expression counts on multiple exposures jointly
+#' Title Filter transcripts by applying various filters
 #'
-#' @param count_matrix : Raw count (Transcript)
-#' @param pheno  phenotype data
-#' @param covariates_string 
-#' @param exposures : multiple exposusure to test : "avgsat5,minsat5,rdi3p5" ---> NO SPACE
-#' @param normal_pval : P (based on Tstat)
-#' @param list_geneID : vector of selection of geneID
-#'
-#' @return linear resgressions results
-#' @export
-#'
-#' @examples
-#' 
-mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, exposures, list_geneID=NULL, log_transform){
-  
-  if(!is.null(list_geneID)){
-    count_matrix<-count_matrix[rownames(count_matrix) %in% list_geneID,]
-    dim(count_matrix)
-  }else{
-    count_matrix<- count_matrix
-  }
-  log_trans_mat<- log_transform(count_matrix)
-  print(dim(log_trans_mat))
-  log_count_matrix<-t(log_trans_mat)
-  
-  exposures<- as.character(exposures)
-  #exposures<- strsplit(exposures,",")[[1]]
-  dim(log_trans_mat)
-  print(exposures)
-  
-  covars<- gsub(","," ",covariates_string)
-  covars<- unlist(strsplit(covars,split = " "))
-  
-  
-  ### from the point of having an "X" matrix 
-  cov <-c(covars, exposures)
-  # 
-  XX<-model.matrix(as.formula(paste0("~", cov,collapse= "+")), data=pheno)
-  #XX <- cbind(1, as.matrix(X))
-  print("here")
-  XtXinv <- solve(t(XX) %*% as.matrix(XX))
-  XtXinv_var_arg <- solve(XtXinv[exposures,exposures])
-  numExplan <-ncol(XX)
-  
-  XXproj <- XtXinv %*% t(XX)
-  
-  betas_mat <- XXproj %*% log_count_matrix
-  
-  # effect sizes: each column correspond to a different transcript
-  betas <- betas_mat[exposures,]
-  betas_val<- t(betas)
-  colnames(betas_val)<- c(paste0("Beta:",exposures))
-  
-  resid_Ys <-log_count_matrix - XX %*% XXproj %*% log_count_matrix
-  sum_squares_resids <- colSums(resid_Ys^2)
-  sigmas_square <- sum_squares_resids/(nrow(log_count_matrix)-numExplan)
-  Joint_stats_arg1 <- XtXinv_var_arg %*% betas
-  Joint_stats_arg2 <- colSums(betas*Joint_stats_arg1 )
-  Joint_stats <- Joint_stats_arg2/sigmas_square
-  Joint.Pvalue <- pchisq(Joint_stats, df = length(exposures), lower.tail = FALSE)
-  
-  res<- data.frame(betas_val,Joint_stats,Joint.Pvalue) %>% mutate(Joint.FDR_BH= p.adjust(Joint.Pvalue, method = "BH")) %>% rownames_to_column(var="GeneID")
-  return(res)
-}
-
-
-
-
-#' Title Filter Genes
-#'
-#' @param gene_counts: raw counts (After harmonization based on Phenotype) Ronames gene_counts has to be identical with phnotype ID
-#'                       - rowname must be ENSMBL ID :
+#' @param count_matrix: raw counts (After harmonization based on Phenotype) Rownames count_matrix has to be identical with phnotype ID
+#'                       - rownames must be ENSMBL ID :
 #'                         example :
 #'                         TOR841324 TOR127830 TOR257836 TOR461713 TOR508155
 #'      ENSG00000000003        15        20        16         6         9      
@@ -90,21 +21,24 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, exposures,
 #'
 #' @return (filter gene count or matrix counts )
 
-filter_genes<- function(gene_counts, cv_max =NULL, cv_min=NULL, median_val= NULL,mmr_val=NULL, percent_zero_count= NULL,range_val=NULL,Q1_val=NULL, Q3_val=NULL, IQR_val=NULL ,pheno){
+apply_filters <- function(count_matrix, cv_max =NULL, cv_min=NULL, median_val= NULL,mmr_val=NULL, percent_zero_count= NULL,range_val=NULL,Q1_val=NULL, Q3_val=NULL, IQR_val=NULL ,pheno){
   
   
-  #normalized the data
-  norm_count<- normalized(gene_counts)
-  dim(norm_count)
+  #normalize the data
+  # TS: which function is this? also, a function should be called "normalize", not "normalized". 
+  norm_count<- normalized(count_matrix) 
   
-  ############ Filter method
+  ## all parameter should be computed and only then filters should be applied. Because applying
+  ## a single filter will change the values computed for the next filter.
   
-  #countsx<-count_matrix
+  
+  ############ Compute characteristics of the normalized count matrix. 
+  ## TS: why of the normalized? is that what we decided? 
+  
   
   zero_count<- rowSums(norm_count == 0)
   
   zero_count<- data.frame(zero_count= zero_count) %>% rownames_to_column(var="gene_id")
-  head(zero_count, 10L)
   
   #Median
   median_count<- apply(norm_count, 1, median)
