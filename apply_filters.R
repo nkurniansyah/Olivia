@@ -42,15 +42,12 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
   
   
   #normalize the data
-  # TS: which function is this? also, a function should be called "normalize", not "normalized". 
-  count_matrix <- normalize(count_matrix) 
+  count_matrix <- normalize(count_matrix, method = "library_size") 
   
   ## all parameter should be computed and only then filters should be applied. Because applying
   ## a single filter will change the values computed for the next filter.
   
-  
   ############ Compute characteristics of the normalized count matrix. 
-  ## TS: why of the normalized? is that what we decided? 
   
   message("Computing transtripts characteristics...")
   median_vals <- apply(count_matrix, 1, median)
