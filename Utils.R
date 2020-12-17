@@ -88,13 +88,13 @@ quantile_emPval <- function(p_values, null_p_values){
 #' @return countsx: Normalize Row caunt
 #' @export
 #' 
-normalized<- function(count_matrix){
+normalize <- function(count_matrix){
   countsx <- t(t(count_matrix)/(colSums(count_matrix))*median(colSums(count_matrix)))
   return(countsx)
 }
 
 
-#' Title: Residual permutation for continous trait
+#' Title: Residual permutation for continuous trait
 #'
 #' @param pheno : phenogtype
 #' @param outcome : trait (example : "avgsat5, minsat5, rdi3p5)
@@ -160,7 +160,7 @@ rankNorm <- function(x){
 #' @param required_cor : corralations values (0.3,0.4,0.5)
 #' @param seed : number of permutation
 #'
-#' @return value gene power with residual pemutations
+#' @return value gene power with residual permutations
 
 permute_resids_trait_cor <- function(pheno, outcome, covariates_string, gene_exp, required_cor, seed = NULL){
   if (!is.null(seed)) set.seed(seed)
