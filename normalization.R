@@ -8,7 +8,7 @@
 #' @export
 #' 
 
-normalize_trancript_count <- function(count_matrix, normalized_type = "median_normalization"){
+normalize_trancript_count <- function(count_matrix,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "median_normalization"){
   if (is.null(median_normalization)){
     message("No normalization method of gene counts requested")
     return(count_matrix)
@@ -26,8 +26,7 @@ normalize_trancript_count <- function(count_matrix, normalized_type = "median_no
   
   if (normalized_type == "SizeFactor"){
     message("Applying size factor ...")
-    
-    return(SizeFactor(count_matrix))
+    return(SizeFactor(count_matrix,covariates_string,outcome,phenotype))
   }
   
   if (normalized_type == "TMM"){
