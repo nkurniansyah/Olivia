@@ -36,25 +36,4 @@ normalize_trancript_count <- function(count_matrix, normalized_type = "median_no
     return(TMM(count_matrix))
   }
   
-  
-  }
-
-if(normalize_type=="median_libsize"){
-  message("applying median library size ...")
-  count_matrix <- normalize_median(count_matrix) 
-  
-}else if (normalize_type=="SizeFactor"){
-  message("Applying EstimeSizeFactor ...")
-  #normalize_sizefactor<- function(count_matrix, covariates_string, outcome, phenotype){
-  
-  count_matrix <- normalize_sizefactor(count_matrix, covariates_string = covariates_string, outcome =trait, phen=pheno) 
-  
-}else if(normalize_type=="TMM"){
-  message("Applying TMM  ...")
-  
-  
-  count_matrix <- normalize_tmm(count_matrix) 
-  
 }
-
-
