@@ -52,7 +52,7 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
   message("Computing transtripts characteristics...")
   median_vals <- apply(count_matrix, 1, median)
   expression_sum_vals <- rowSums(count_matrix)
-  max_vals <- rowSums(count_matrix)
+  max_vals <- apply(count_matrix,1,max)
   range_vals <- apply(count_matrix, 1, function(x) max(x) - min(x))
   prop_zero_vals <- apply(count_matrix, 1, function(x) mean(x == 0))
   max_to_median_ratio_vals <- apply(count_matrix, 1, function(x) max(x)/median(x))
