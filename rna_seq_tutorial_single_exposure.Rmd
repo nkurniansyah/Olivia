@@ -1,0 +1,216 @@
+---
+title: "Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies"
+author: "Tamar Sofer & Nuzulul Kurniansyah"
+date: "12/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+
+
+## Installation Requirements
+
+- An installed R distribution, such as Microsoft R Open. Use R version 3.6.3 or later.
+- RStudio, either the commercial edition or the open-source RStudio Desktop.
+- R packages (CRAN)
+
+
+```{r message=FALSE, warning=FALSE, results='hide'}
+list.of.packages <- c("dplyr", "tidyverse","purrr","data.table")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+library(dplyr)
+library(tidyverse)
+library(purrr)
+library(data.table)
+
+
+
+
+```
+- R packages (Bioconductor)
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+list.of.packages <- c("limma", "qvalue","DESeq2","edgeR")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) BiocManager::install(new.packages)
+library(limma)
+library(qvalue)
+library(DESeq2)
+library(edgeR)
+
+```
+
+
+```{r include=TRUE, echo=TRUE, eval=TRUE}
+setwd("/Users/nuzululkurniansyah/Desktop/RNA_Seq_continous/RNA_Seq_analysis")
+
+source("filter_by_genes.R")
+source("log_transform_count.R")
+source("Utils.R")
+source("normalization.R")
+source("apply_filters.R")
+source("residual_permutation.R")
+source("lm_count_mat.R")
+source("mult_lm_count_mat.R")
+
+
+
+
+
+
+
+```
+
+
+## Input data
+
+-  Load transcripts: A p x n matrix of counts of p transcripts across n individuals. 
+
+```{r}
+
+gene_count_matrix <- fread("Data/GSE156437_RNA_seq.txt", data.table = F)
+
+
+
+row.names(gene_count_matrix)<- gene_count_matrix[,1]
+
+gene_count_matrix<-gene_count_matrix[,-1]
+
+gene_count_matrix<-as.matrix(gene_count_matrix)
+
+storage.mode(gene_count_matrix)<-"integer"
+gene_count_matrix[1:10,1:10]
+```
+
+- Load phenotype
+
+```{r}
+phenotype<- fread("Data/2020-08-28_pheno.csv", data.table = F)
+
+head(phenotype)
+
+
+```
+
+- Define the outcome
+
+```{r}
+outcome<-"Trait.1"
+```
+
+
+- Define covariates to adjust 
+
+```{r}
+covariates<-"Age,BMI,Sex"
+```
+
+
+```{r}
+count_matrix_new<- gene_count_matrix[, colnames(gene_count_matrix) %in% phenotype$ID]
+
+stopifnot(all(phenotype$ID %in% colnames(count_matrix_new)))
+
+
+
+```
+ 
+ - Removing all transcript which have 0 expression accros the sample
+```{r}
+
+count_matrix_non_zero<-count_matrix_new[!rowSums(count_matrix_new)==0,]
+dim(count_matrix_non_zero)
+
+
+
+```
+
+## Normalized the transcripts
+
+- The options of normalization method are : median_normalization, SizeFactor, TMM. If normalization method is SizeFactor, you define the phenotype, outcome, and covariates string.
+
+
+```{r}
+
+
+median_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "median_normalization")
+
+tmm_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "TMM")
+
+sizefactor_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_string=covariates, outcome=outcome, phenotype=phenotype, normalized_type = "SizeFactor")
+
+```
+
+
+## Applying filter
+
+- Removing lowly express transcripts.
+
+
+```{r}
+
+
+
+clean_count_matrix<- apply_filters(count_matrix = median_norm, median_min = 1, expression_sum_min = 10, 
+                          max_min = 5, range_min = 5, prop_zero_max = 0.8,
+                          cv_min = NULL, cv_max = NULL, 
+                          max_to_median_max = NULL)
+
+
+
+  
+```
+
+
+
+## Creating residual permutation
+
+- Running residual permutations
+
+```{r}
+
+null_pval<-compute_residual_permutation(outcome=outcome,count_matrix=clean_count_matrix,phenotype=phenotype,family="gaussian",covariates_string=covariates_string,gene_IDs=NULL,n_permute=100,log_transform="log_replace_half_min",null_pval=TRUE,null_zcore=FALSE)
+head(null_pval)
+
+```
+
+
+- Running DEG
+
+```{r}
+
+deg<-lm_count_mat(count_matrix=clean_count_matrix, pheno=phenotype, trait=outcome, covariates_string=covariates,gene_IDs=NULL, log_transform = "log_replace_half_min")
+head(deg)
+```
+
+## Computing emprical p-value
+
+- Quantile empirical p-value, require null pvalues
+- Storey empirical-pvalue, require null zscore
+
+```{r}
+quantile_empirical<- quantile_empirical_pvalue(p_values = deg$p_value,  null_p_values= null_pval)
+
+deg_quantile_empirical_pvalue<- cbind(deg, empirical_pvalue=quantile_empirical)
+deg_quantile_empirical_pvalue_df<- deg_quantile_empirical_pvalue %>% mutate(empirical_BH=p.adjust(empirical_pvalue, method = "BH"))
+
+head(deg_quantile_empirical_pvalue_df)
+
+head(deg_quantile_empirical_pvalue_df[which(deg_quantile_empirical_pvalue_df$empirical_BH < 0.05),])
+```
+
+
+
+
+
