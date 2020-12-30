@@ -62,7 +62,6 @@ TMM<- function(count_matrix){
 
 
 
-
 #' Title: Log Transform method (Replcae zero wit minimum value divided by 2)
 #'
 #' @param count_matrix : A p x n matrix of gene expression counts. p are genes, n are individuals. Rownames are gene names
