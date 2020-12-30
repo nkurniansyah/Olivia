@@ -42,7 +42,7 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
   
   
   #normalize the data
-  count_matrix <- normalize(count_matrix, method = "library_size") 
+  #count_matrix <- normalize(count_matrix, method = "library_size") 
   
   ## all parameter should be computed and only then filters should be applied. Because applying
   ## a single filter will change the values computed for the next filter.
