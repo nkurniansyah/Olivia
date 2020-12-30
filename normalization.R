@@ -8,6 +8,7 @@
 #' @export
 #' 
 
+
 normalize_trancript_count <- function(count_matrix,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "median_normalization"){
   if (is.null(median_normalization)){
     message("No normalization method of gene counts requested")
