@@ -127,11 +127,7 @@ quantile_empirical_pvalue <- function(p_values, null_p_values){
 
 
 storey_empirical_pvalue <- function(z_score, null_z_score){
-<<<<<<< HEAD
   emp_pvalues<- empPvals(z_score, null_z_score)
-=======
-  emp_pvalues<- empPvals(z.score, null_zscore_res)
->>>>>>> Zulu
   emp_pvalues
 }
 
