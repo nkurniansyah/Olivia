@@ -11,8 +11,9 @@
 
 normalize_trancript_count <- function(count_matrix,
                                       normalization_type = "median_normalization",
+                                      phenotypes=NULL,
                                       covariates_string=NULL, 
-                                      outcome=NULL, phenotype=NULL){
+                                      trait=NULL){
   if (is.null(normalization_type)){
     message("No normalization method of gene counts requested")
     return(count_matrix)
@@ -30,7 +31,10 @@ normalize_trancript_count <- function(count_matrix,
   
   if (normalization_type == "SizeFactor"){
     message("Applying size factor normalization...")
-    return(SizeFactor(count_matrix,covariates_string,outcome,phenotype))
+    return(SizeFactor(count_matrix,
+                      phenotypes = phenotypes,
+                      covariates_string = covariates_string,
+                      trait = trait))
   }
   
   if (normalization_type == "TMM"){
@@ -60,21 +64,19 @@ median_normalization <- function(count_matrix){
 #' Title: SizeFactor Normalization
 #'
 #' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
-#' @param phenotype :  Data frame of phenotype
-#' @param outcome :  Character outcome, example: "ahi"
+#' @param phenotypes :  Data frame of phenotype
+#' @param trait :  Character trait of interest
 #' @param covariates_string :  Character covariates to adjust into model, example : "age,bmi,sex"
 
 #' @return SizeFactor_normalization : Matrix of gene expression counts after normalization
 #' 
 #' 
 
-SizeFactor <- function(count_matrix,covariates_string, outcome,phenotype){
-  covariates_string<- as.character(covariates_string)
-  designs<- gsub(",","+",covariates_string)
+SizeFactor <- function(count_matrix, phenotypes, covariates_string, trait){
   
-  des_matrix<- DESeqDataSetFromMatrix(countData = count_matrix, 
+  des_matrix <- DESeqDataSetFromMatrix(countData = count_matrix, 
                                       colData = phenotype,
-                                      design = formula(paste0("~ ",designs,"+",outcome)))
+                                      design = formula(paste0("~ ",covariates_string,"+",trait)))
   
   des_matrix <- estimateSizeFactors(des_matrix)
   

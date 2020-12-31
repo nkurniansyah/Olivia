@@ -61,7 +61,7 @@ library(edgeR)
 
 Source files with functions (this will change once the code is packaged)
 ```{r include=TRUE, echo=TRUE, eval=TRUE}
-files <- list.files(base_path, full.names = TRUE)
+files <- list.files(paste0(base_path, "Code"), full.names = TRUE)
 for (file in files)(
   source(file)
 )
@@ -69,66 +69,76 @@ for (file in files)(
 
 
 # Load example data
-
--  Load transcripts: A p x n matrix of counts of p transcripts across n individuals. 
+## Load transcripts 
+First we load the transcripts, where were obtained from XXXX.
+We reformat to a desired form. 
 
 ```{r}
 
-gene_count_matrix <- fread(paste0(base_path, "Data/GSE156437_RNA_seq.txt"), data.table = F)
+rnaseq_matrix <- fread(paste0(base_path, "Data/GSE156437_RNA_seq.txt"), data.table = F)
 
-row.names(gene_count_matrix) <- gene_count_matrix[,1]
+# make transcript names rownames rather than a column
+row.names(rnaseq_matrix) <- rnaseq_matrix[,"ensg"]
+rnaseq_matrix <- rnaseq_matrix[,-grep("ensg", colnames(rnaseq_matrix))]
 
-gene_count_matrix <- gene_count_matrix[,-1]
+# make a matrix instead of a data.frame
+rnaseq_matrix <- as.matrix(rnaseq_matrix)
 
-gene_count_matrix <- as.matrix(gene_count_matrix)
-
-storage.mode(gene_count_matrix) <- "integer"
-gene_count_matrix[1:10,1:10]
+# take a look 
+dim(rnaseq_matrix)
+rnaseq_matrix[1:10,1:10]
 ```
+After looking at a few transcript counts, we infer that the data was normalized already, because the counts are not natural numbers. We ignore this fact and continue demonstrating the pipeline. 
 
-- Load phenotype
+## Load simulated phenotypes
+We simulated in advance a data.frame phenotypes. 
 
 ```{r}
-phenotype<- fread(paste0(base_path, "Data/2020-08-28_pheno.csv"), data.table = F)
-
+phenotype <- fread(paste0(base_path, "Data/2020-08-28_pheno.csv"), data.table = F)
 head(phenotype)
 ```
 
-- Define the outcome
+We define the trait of interest to study as an exposure associated with transcription. It has to be a column name in the phenotype data.frame.
 
 ```{r}
-outcome <- "Trait.1"
+trait <- "Trait.1"
 ```
 
-
-- Define covariates to adjust 
+We will adjust our analysis to the simulated covariates Age, BMI, and Sex. The covriates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
 
 ```{r}
 covariates <- "Age,BMI,Sex"
+covariates_string <- "Age + BMI + Sex"
 ```
+Note that we can also define the string to be "Age + BMI + as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
 
-
+Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the IDs overlap.
 ```{r}
-count_matrix_new <- gene_count_matrix[, colnames(gene_count_matrix) %in% phenotype$ID]
-
-stopifnot(all(phenotype$ID %in% colnames(count_matrix_new)))
-
+IDs_both <- intersect(phenotype$ID, colnames(rnaseq_matrix))
+rnaseq_matrix <- rnaseq_matrix[, IDs_both] 
+phenotype <- phenotype[match(IDs_both, phenotype$ID),]
 ```
  
 
-## Normalized the transcripts
-
-- The options of normalization method are : median_normalization, SizeFactor, TMM. If normalization method is SizeFactor, you define the phenotype, outcome, and covariates string.
+# Normalize the RNA-seq dataset
+The options of normalization method are: median_normalization, SizeFactor, TMM. 
+If the selected normalization method is SizeFactor, the users needs to define the phenotype, outcome, and covariates string.
 
 
 ```{r}
 
 
-median_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "median_normalization")
+median_norm <- normalize_trancript_count(rnaseq_matrix,
+                                          normalization_type = "median_normalization")
 
-tmm_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "TMM")
+tmm_norm <- normalize_trancript_count(rnaseq_matrix,
+                                      normalization_type = "TMM")
 
-sizefactor_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_string=covariates, outcome=outcome, phenotype=phenotype, normalized_type = "SizeFactor")
+sizefactor_norm <- normalize_trancript_count(rnaseq_matrix,
+                                             phenotype=phenotype, 
+                                             covariates_string=covariates_string, 
+                                             trait=trait, 
+                                             normalization_type = "SizeFactor")
 
 ```
 
