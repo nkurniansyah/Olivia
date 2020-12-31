@@ -9,31 +9,98 @@
 #' 
 
 
-normalize_trancript_count <- function(count_matrix,covariates_string=NULL, outcome=NULL, phenotype=NULL, normalized_type = "median_normalization"){
-  if (is.null(median_normalization)){
+normalize_trancript_count <- function(count_matrix,
+                                      normalization_type = "median_normalization",
+                                      covariates_string=NULL, 
+                                      outcome=NULL, phenotype=NULL){
+  if (is.null(normalization_type)){
     message("No normalization method of gene counts requested")
     return(count_matrix)
   }
-  if (!is.element(normalized_type, c("median_normalization", "SizeFactor", "TMM"))){
+  if (!is.element(normalization_type, c("median_normalization", "SizeFactor", "TMM"))){
     stop("Requested normalization not allowed. 
          Allowed normalization names are median_normalization, SizeFactor, TMM")
   }
   
-  if (normalized_type == "median_normalization") {
-    message("Applying median normalization  ...")
+  if (normalization_type == "median_normalization") {
+    message("Applying median normalization...")
     
     return(median_normalization(count_matrix))
   }
   
-  if (normalized_type == "SizeFactor"){
-    message("Applying size factor ...")
+  if (normalization_type == "SizeFactor"){
+    message("Applying size factor normalization...")
     return(SizeFactor(count_matrix,covariates_string,outcome,phenotype))
   }
   
-  if (normalized_type == "TMM"){
-    message("Applying TMM ...")
+  if (normalization_type == "TMM"){
+    message("Applying TMM normalization...")
     
     return(TMM(count_matrix))
   }
   
 }
+
+
+
+#' Title: Median Normalization
+#'
+#' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
+#'
+#' @return median_normalization : Matrix of gene expression counts after normalization
+#' 
+#' 
+median_normalization <- function(count_matrix){
+  median_normalization <- t(t(count_matrix)/(colSums(count_matrix))*median(colSums(count_matrix)))
+  return(median_normalization)
+}
+
+
+
+#' Title: SizeFactor Normalization
+#'
+#' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
+#' @param phenotype :  Data frame of phenotype
+#' @param outcome :  Character outcome, example: "ahi"
+#' @param covariates_string :  Character covariates to adjust into model, example : "age,bmi,sex"
+
+#' @return SizeFactor_normalization : Matrix of gene expression counts after normalization
+#' 
+#' 
+
+SizeFactor <- function(count_matrix,covariates_string, outcome,phenotype){
+  covariates_string<- as.character(covariates_string)
+  designs<- gsub(",","+",covariates_string)
+  
+  des_matrix<- DESeqDataSetFromMatrix(countData = count_matrix, 
+                                      colData = phenotype,
+                                      design = formula(paste0("~ ",designs,"+",outcome)))
+  
+  des_matrix <- estimateSizeFactors(des_matrix)
+  
+  SizeFactor_normalization <- counts(des_matrix, normalized=TRUE)
+  
+  return(SizeFactor_normalization)
+}
+
+
+#' Title: TMM Normalization
+#'
+#' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
+#'
+#' @return TMM_normalization : Matrix of gene expression counts after normalization
+#' 
+#' 
+
+TMM <- function(count_matrix){
+  
+  counts <- DGEList(count_matrix)
+  
+  # normlize data using TMM method
+  dgList<- calcNormFactors(counts, method = "TMM")
+  
+  TMM_normalization<- cpm(dgList)
+  return(TMM_normalization)
+}
+
+
