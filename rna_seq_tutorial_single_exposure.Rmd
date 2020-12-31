@@ -1,17 +1,27 @@
 ---
-title: "Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies"
+title: "Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies: tutorial"
 author: "Tamar Sofer & Nuzulul Kurniansyah"
 date: "12/29/2020"
-output: html_document
+output: 
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
+# Introduction
+Here we demonstrate how to perform association analyses of continuous phenotypes 
+with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies". 
 
+```{r}
+base_path <- "~/Documents/GitHub/RNASeq/"
+```
 
+# Setting up: packages, functions
 
 ## Installation Requirements
 
@@ -30,12 +40,10 @@ library(tidyverse)
 library(purrr)
 library(data.table)
 
-
-
-
 ```
-- R packages (Bioconductor)
 
+Install packages from Bioconductor
+(we may remove some of these, if we are not doing any comparisons in this code)
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE, results='hide'}
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -51,90 +59,62 @@ library(edgeR)
 
 ```
 
-
+Source files with functions (this will change once the code is packaged)
 ```{r include=TRUE, echo=TRUE, eval=TRUE}
-setwd("/Users/nuzululkurniansyah/Desktop/RNA_Seq_continous/RNA_Seq_analysis")
-
-source("filter_by_genes.R")
-source("log_transform_count.R")
-source("Utils.R")
-source("normalization.R")
-source("apply_filters.R")
-source("residual_permutation.R")
-source("lm_count_mat.R")
-source("mult_lm_count_mat.R")
-
-
-
-
-
-
-
+files <- list.files(base_path, full.names = TRUE)
+for (file in files)(
+  source(file)
+)
 ```
 
 
-## Input data
+# Load example data
 
 -  Load transcripts: A p x n matrix of counts of p transcripts across n individuals. 
 
 ```{r}
 
-gene_count_matrix <- fread("Data/GSE156437_RNA_seq.txt", data.table = F)
+gene_count_matrix <- fread(paste0(base_path, "Data/GSE156437_RNA_seq.txt"), data.table = F)
 
+row.names(gene_count_matrix) <- gene_count_matrix[,1]
 
+gene_count_matrix <- gene_count_matrix[,-1]
 
-row.names(gene_count_matrix)<- gene_count_matrix[,1]
+gene_count_matrix <- as.matrix(gene_count_matrix)
 
-gene_count_matrix<-gene_count_matrix[,-1]
-
-gene_count_matrix<-as.matrix(gene_count_matrix)
-
-storage.mode(gene_count_matrix)<-"integer"
+storage.mode(gene_count_matrix) <- "integer"
 gene_count_matrix[1:10,1:10]
 ```
 
 - Load phenotype
 
 ```{r}
-phenotype<- fread("Data/2020-08-28_pheno.csv", data.table = F)
+phenotype<- fread(paste0(base_path, "Data/2020-08-28_pheno.csv"), data.table = F)
 
 head(phenotype)
-
-
 ```
 
 - Define the outcome
 
 ```{r}
-outcome<-"Trait.1"
+outcome <- "Trait.1"
 ```
 
 
 - Define covariates to adjust 
 
 ```{r}
-covariates<-"Age,BMI,Sex"
+covariates <- "Age,BMI,Sex"
 ```
 
 
 ```{r}
-count_matrix_new<- gene_count_matrix[, colnames(gene_count_matrix) %in% phenotype$ID]
+count_matrix_new <- gene_count_matrix[, colnames(gene_count_matrix) %in% phenotype$ID]
 
 stopifnot(all(phenotype$ID %in% colnames(count_matrix_new)))
 
-
-
 ```
  
- - Removing all transcript which have 0 expression accros the sample
-```{r}
-
-count_matrix_non_zero<-count_matrix_new[!rowSums(count_matrix_new)==0,]
-dim(count_matrix_non_zero)
-
-
-
-```
 
 ## Normalized the transcripts
 
@@ -160,16 +140,12 @@ sizefactor_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_str
 
 ```{r}
 
-
-
-clean_count_matrix<- apply_filters(count_matrix = median_norm, median_min = 1, expression_sum_min = 10, 
-                          max_min = 10, range_min = 5, prop_zero_max = 0.5,
-                          cv_min = NULL, cv_max = NULL, 
-                          max_to_median_max = NULL)
-
-
-
-  
+clean_count_matrix<- apply_filters(count_matrix = median_norm, 
+                                   median_min = 1, 
+                                   expression_sum_min = 10, 
+                                   max_min = 10, 
+                                   range_min = 5, 
+                                   prop_zero_max = 0.5)
 ```
 
 
@@ -180,7 +156,16 @@ clean_count_matrix<- apply_filters(count_matrix = median_norm, median_min = 1, e
 
 ```{r}
 set.seed(12)
-null_pval<-compute_residual_permutation(outcome=outcome,count_matrix=clean_count_matrix,phenotype=phenotype,family="gaussian",covariates_string=covariates_string,gene_IDs=NULL,n_permute=100,log_transform="log_replace_half_min",null_pval=TRUE,null_zcore=FALSE)
+null_pval <- compute_residual_permutation(outcome=outcome,
+                          count_matrix=clean_count_matrix,
+                          phenotype=phenotype,
+                          family="gaussian",
+                          covariates_string=covariates_string,
+                          gene_IDs=NULL,
+                          n_permute=100,
+                          log_transform="log_replace_half_min",
+                          null_pval=TRUE,
+                          null_zcore=FALSE)
 head(null_pval)
 
 ```
@@ -190,7 +175,12 @@ head(null_pval)
 
 ```{r}
 
-deg<-lm_count_mat(count_matrix=clean_count_matrix, pheno=phenotype, trait=outcome, covariates_string=covariates,gene_IDs=NULL, log_transform = "log_replace_half_min")
+deg <- lm_count_mat(count_matrix=clean_count_matrix, 
+                    pheno=phenotype, 
+                    trait=outcome, 
+                    covariates_string=covariates,
+                    gene_IDs=NULL, 
+                    log_transform = "log_replace_half_min")
 head(deg)
 ```
 
