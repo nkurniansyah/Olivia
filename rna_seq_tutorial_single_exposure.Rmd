@@ -88,7 +88,12 @@ rnaseq_matrix <- as.matrix(rnaseq_matrix)
 dim(rnaseq_matrix)
 rnaseq_matrix[1:10,1:10]
 ```
-After looking at a few transcript counts, we infer that the data was normalized already, because the counts are not natural numbers. We ignore this fact and continue demonstrating the pipeline. 
+After looking at a few transcript counts, we infer that the data was normalized already, because the counts are not natural numbers. We ignore this fact, force the entries to be integerse, and continue demonstrating the pipeline. 
+
+```{r}
+rnaseq_matrix <- round(rnaseq_matrix)
+storage.mode(rnaseq_matrix) <- "integer"
+```
 
 ## Load simulated phenotypes
 We simulated in advance a data.frame phenotypes. 
@@ -145,12 +150,11 @@ sizefactor_norm <- normalize_trancript_count(rnaseq_matrix,
 
 ## Applying filter
 
-- Removing lowly express transcripts.
+Remove lowly express transcripts.
 
 
 ```{r}
-
-clean_count_matrix<- apply_filters(count_matrix = median_norm, 
+clean_count_matrix <- apply_filters(count_matrix = median_norm, 
                                    median_min = 1, 
                                    expression_sum_min = 10, 
                                    max_min = 10, 
@@ -160,12 +164,29 @@ clean_count_matrix<- apply_filters(count_matrix = median_norm,
 
 
 
-## Creating residual permutation
 
-- Running residual permutations
+
+# Perform differential expression analysis
+
+```{r}
+
+deg <- lm_count_mat(count_matrix=clean_count_matrix, 
+                    pheno=phenotype, 
+                    trait=trait, 
+                    covariates_string=covariates_string,
+                    gene_IDs=NULL, 
+                    log_transform = "log_replace_half_min")
+head(deg)
+```
+
+## Apply residual permutations 
+We want to generate p-values under the null, in order to compute empirical p-values. Therefore, we create a "residual permuted" trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. 
+
 
 ```{r}
 set.seed(12)
+
+## re-do this. 
 null_pval <- compute_residual_permutation(outcome=outcome,
                           count_matrix=clean_count_matrix,
                           phenotype=phenotype,
@@ -178,20 +199,6 @@ null_pval <- compute_residual_permutation(outcome=outcome,
                           null_zcore=FALSE)
 head(null_pval)
 
-```
-
-
-- Running DEG
-
-```{r}
-
-deg <- lm_count_mat(count_matrix=clean_count_matrix, 
-                    pheno=phenotype, 
-                    trait=outcome, 
-                    covariates_string=covariates,
-                    gene_IDs=NULL, 
-                    log_transform = "log_replace_half_min")
-head(deg)
 ```
 
 ## Computing emprical p-value
