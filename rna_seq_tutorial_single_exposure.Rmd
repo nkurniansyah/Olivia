@@ -163,7 +163,7 @@ sizefactor_norm<- normalize_trancript_count(count_matrix_non_zero,covariates_str
 
 
 clean_count_matrix<- apply_filters(count_matrix = median_norm, median_min = 1, expression_sum_min = 10, 
-                          max_min = 5, range_min = 5, prop_zero_max = 0.8,
+                          max_min = 10, range_min = 5, prop_zero_max = 0.5,
                           cv_min = NULL, cv_max = NULL, 
                           max_to_median_max = NULL)
 
@@ -179,7 +179,7 @@ clean_count_matrix<- apply_filters(count_matrix = median_norm, median_min = 1, e
 - Running residual permutations
 
 ```{r}
-
+set.seed(12)
 null_pval<-compute_residual_permutation(outcome=outcome,count_matrix=clean_count_matrix,phenotype=phenotype,family="gaussian",covariates_string=covariates_string,gene_IDs=NULL,n_permute=100,log_transform="log_replace_half_min",null_pval=TRUE,null_zcore=FALSE)
 head(null_pval)
 
