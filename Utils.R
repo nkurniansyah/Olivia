@@ -1,62 +1,106 @@
 
-readConfig <- function(file, ...) {
-  config.table <- read.table(file, as.is=TRUE, ...)
-  if (any(duplicated(config.table[, 1]))) stop("duplicated parameters in config file are not allowed!")
-  config <- config.table[,2]
-  names(config) <- config.table[,1]
-  # recode tabs
-  config[config %in% "\\t"] <- "\t"
-  
-  return(config)
-}
 
-
-
-writeConfig <- function(config, file, ...) {
-  write.table(config, file=file, col.names=FALSE, ...)
-}
-
-#' @param required character vector of required parameter names
-#' @param optional named vector of optional parameter values
-#' @rdname readConfig
+#' Title: Median Normalization
 #'
-#' @export
+#' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
 #'
-setConfigDefaults <- function(config, required, optional) {
-  # optional is a named list of default values
-  default <- unname(optional)
-  optional <- names(optional)
-  
-  config.params <- names(config)
-  found.params <- intersect(config.params, c(required, optional))
-  if (length(found.params) > 0) {
-    message("found parameters: ", paste(found.params, collapse=", "))
-  }
-  
-  # if required params not in config, stop
-  missing.params <- setdiff(required, config.params)
-  if (length(missing.params) > 0) {
-    stop("missing required parameters: ", paste(missing.params, collapse=", "))
-  }
-  
-  # if not in config, set default value
-  set.params <- setdiff(optional, config.params)
-  if (length(set.params) > 0) {
-    config[set.params] <- default[match(set.params, optional)]
-    message("using default values: ", paste(set.params, collapse=", "))
-  }
-  
-  # note unsed params in config
-  extra.params <- setdiff(config.params, c(required, optional))
-  if (length(extra.params) > 0) {
-    message("unused parameters: ", paste(extra.params, collapse=", "))
-  }
-  
-  # return config with default values set
-  config <- config[c(required, optional)]
-  return(config)
+#' @return median_normalization : Matrix of gene expression counts after normalization
+#' 
+#' 
+median_normalization <- function(count_matrix){
+  median_normalization <- t(t(count_matrix)/(colSums(count_matrix))*median(colSums(count_matrix)))
+  return(median_normalization)
 }
 
+
+
+#' Title: SizeFactor Normalization
+#'
+#' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
+#' @param phenotype :  Data frame of phenotype
+#' @param outcome :  Character outcome, example: "ahi"
+#' @param covariates_string :  Character covariates to adjust into model, example : "age,bmi,sex"
+
+#' @return SizeFactor_normalization : Matrix of gene expression counts after normalization
+#' 
+#' 
+
+SizeFactor<- function(count_matrix,covariates_string, outcome,phenotype){
+  covariates_string<- as.character(covariates_string)
+  designs<- gsub(",","+",covariates_string)
+  
+  des_matrix<- DESeqDataSetFromMatrix(countData = count_matrix, 
+                                      colData = phenotype,
+                                      design = formula(paste0("~ ",designs,"+",outcome)))
+  
+  des_matrix <- estimateSizeFactors(des_matrix)
+  
+  SizeFactor_normalization <- counts(des_matrix, normalized=TRUE)
+  
+  return(SizeFactor_normalization)
+}
+
+
+#' Title: TMM Normalization
+#'
+#' @param count_matrix :  A p x n matrix of gene expression counts (possibly transformed). p are genes, n are individuals. Rownames are gene names.
+#'
+#' @return TMM_normalization : Matrix of gene expression counts after normalization
+#' 
+#' 
+
+TMM<- function(count_matrix){
+  
+  counts <- DGEList(count_matrix)
+  
+  # normlize data using TMM method
+  dgList<- calcNormFactors(counts, method = "TMM")
+  
+  TMM_normalization<- cpm(dgList)
+  return(TMM_normalization)
+}
+
+
+
+#' Title: Log Transform method (Replcae zero wit minimum value divided by 2)
+#'
+#' @param count_matrix : A p x n matrix of gene expression counts. p are genes, n are individuals. Rownames are gene names
+#'
+#' @return : matrix of gene expression counts after transformation
+
+
+log_replace_half_min<- function(count_matrix){
+  imputed_mat <- t(apply(count_matrix,1,function(x){x[x==0] <- min(x[x>0]/2);x}))
+  imputed_mat <- log2(imputed_mat)
+  return(imputed_mat)
+}
+
+
+#' Title:  Log Transform method (Add 0.5 to entire matrix)
+#'
+#' @param count_matrix  A p x n matrix of gene expression counts. p are genes, n are individuals. Rownames are gene names
+#'
+#' @return : matrix of gene expression counts after transformation
+#' 
+
+log_add_0.5<- function(count_matrix){
+  imputed_mat <- log2(count_matrix + 0.5)
+  return(imputed_mat)
+}
+
+
+
+#' Title: Log Transform method (Add min value divided by 2 to entire matrix gene expression counts)
+#'
+#' @param count_matrix  A p x n matrix of gene expression counts. p are genes, n are individuals. Rownames are gene names
+#'
+#' @return : matrix of gene expression counts after transformation
+#' 
+log_add_min <-  function(count_matrix){
+  imputed_mat = t(apply(count_matrix,1,function(x){x= x + min(x[x>0]/2);x}))
+  imputed_mat <- log2(imputed_mat)
+  return(imputed_mat)
+}
 
 
 
@@ -67,7 +111,7 @@ setConfigDefaults <- function(config, required, optional) {
 #'
 #' @return vector of emperical pvalues
 
-quantile_emPval <- function(p_values, null_p_values){
+quantile_empirical_pvalue <- function(p_values, null_p_values){
   
   Fn <- ecdf(null_p_values)
   emp_pvalues <- Fn(p_values)
@@ -81,17 +125,12 @@ quantile_emPval <- function(p_values, null_p_values){
 }
 
 
-#' Title: Normalization
-#'
-#' @param count_matrix : Row count (After basic filter)
-#'
-#' @return countsx: Normalize Row caunt
-#' @export
-#' 
-normalize <- function(count_matrix){
-  countsx <- t(t(count_matrix)/(colSums(count_matrix))*median(colSums(count_matrix)))
-  return(countsx)
+
+storey_empirical_pvalue <- function(z_score, null_z_score){
+  emp_pvalues<- empPvals(z_score, null_z_score)
+  emp_pvalues
 }
+
 
 
 #' Title: Residual permutation for continuous trait
@@ -181,45 +220,3 @@ permute_resids_trait_cor <- function(pheno, outcome, covariates_string, gene_exp
   # return the resid permutaion and fit values 
   resid_permuated + fitted.values(fit)	
 }
-
-
-#' Title: Log Transform method (Replcae zero wit minimum value divided by 2 to avoid inf for log 0)
-#'
-#' @param count_matrix : raw counts after gene filter 
-#'
-#' @return : log transfor gene counts
-
-
-log_replace_half_min<- function(count_matrix){
-  imputed_mat <- t(apply(count_matrix,1,function(x){x[x==0] <- min(x[x>0]/2);x}))
-  imputed_mat <- log2(imputed_mat)
-  return(imputed_mat)
-}
-
-
-#' Title:  Log Transform method (Add 0.5 to entire matrix)
-#'
-#' @param count_matrix  raw counts after gene filter 
-#'
-#' @return : log transfor gene counts
-#' 
-
-log_add_0.5<- function(count_matrix){
-  imputed_mat <- log2(count_matrix + 0.5)
-  return(imputed_mat)
-}
-
-
-
-#' Title: Log Transform method (Add min value divided by 2 to entire matrix)
-#'
-#' @param count_matrix  raw counts after gene filter 
-#'
-#' @return : log transfor gene counts
-#' 
-log_add_min <-  function(count_matrix){
-  imputed_mat = t(apply(count_matrix,1,function(x){x= x + min(x[x>0]/2);x}))
-  imputed_mat <- log2(imputed_mat)
-  return(imputed_mat)
-}
-
