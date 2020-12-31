@@ -99,8 +99,8 @@ storage.mode(rnaseq_matrix) <- "integer"
 We simulated in advance a data.frame phenotypes. 
 
 ```{r}
-phenotype <- fread(paste0(base_path, "Data/2020-08-28_pheno.csv"), data.table = F)
-head(phenotype)
+phenotypes <- fread(paste0(base_path, "Data/2020-08-28_pheno.csv"), data.table = F)
+head(phenotypes)
 ```
 
 We define the trait of interest to study as an exposure associated with transcription. It has to be a column name in the phenotype data.frame.
@@ -112,26 +112,24 @@ trait <- "Trait.1"
 We will adjust our analysis to the simulated covariates Age, BMI, and Sex. The covriates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
 
 ```{r}
-covariates <- "Age,BMI,Sex"
 covariates_string <- "Age + BMI + Sex"
 ```
 Note that we can also define the string to be "Age + BMI + as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
 
 Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the IDs overlap.
 ```{r}
-IDs_both <- intersect(phenotype$ID, colnames(rnaseq_matrix))
+IDs_both <- intersect(phenotypes$ID, colnames(rnaseq_matrix))
 rnaseq_matrix <- rnaseq_matrix[, IDs_both] 
-phenotype <- phenotype[match(IDs_both, phenotype$ID),]
+phenotypes <- phenotypes[match(IDs_both, phenotypes$ID),]
 ```
  
 
 # Normalize the RNA-seq dataset
 The options of normalization method are: median_normalization, SizeFactor, TMM. 
-If the selected normalization method is SizeFactor, the users needs to define the phenotype, outcome, and covariates string.
+If the selected normalization method is SizeFactor, the users needs to define the phenotype, outcome, and covariate string. Here we show how each of these is used. We move forward in this tutorial with the median normalization, because it was used in the manuscript. However, there are no downstream differences in how the methods are applied once the data is normalized. 
 
 
 ```{r}
-
 
 median_norm <- normalize_trancript_count(rnaseq_matrix,
                                           normalization_type = "median_normalization")
@@ -140,11 +138,10 @@ tmm_norm <- normalize_trancript_count(rnaseq_matrix,
                                       normalization_type = "TMM")
 
 sizefactor_norm <- normalize_trancript_count(rnaseq_matrix,
-                                             phenotype=phenotype, 
+                                             phenotypes=phenotypes, 
                                              covariates_string=covariates_string, 
                                              trait=trait, 
                                              normalization_type = "SizeFactor")
-
 ```
 
 
@@ -163,61 +160,104 @@ clean_count_matrix <- apply_filters(count_matrix = median_norm,
 ```
 
 
-
+After filtering transcripts, there are `r nrow(clean_count_matrix)` remaining for differential expression analysis. 
 
 
 # Perform differential expression analysis
-
+First, we show how we perform differential expression analysis on all transcripts without computing empirical p-values. 
 ```{r}
 
 deg <- lm_count_mat(count_matrix=clean_count_matrix, 
-                    pheno=phenotype, 
+                    pheno=phenotypes, 
                     trait=trait, 
                     covariates_string=covariates_string,
                     gene_IDs=NULL, 
                     log_transform = "log_replace_half_min")
 head(deg)
 ```
-
-## Apply residual permutations 
-We want to generate p-values under the null, in order to compute empirical p-values. Therefore, we create a "residual permuted" trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. 
-
-
+Let's look at the distribution of p-values that we got: 
 ```{r}
-# set.seed(12)
-# 
-# ## re-do this. 
-# null_pval <- compute_residual_permutation(outcome=outcome,
-#                           count_matrix=clean_count_matrix,
-#                           phenotype=phenotype,
-#                           family="gaussian",
-#                           covariates_string=covariates_string,
-#                           gene_IDs=NULL,
-#                           n_permute=100,
-#                           log_transform="log_replace_half_min",
-#                           null_pval=TRUE,
-#                           null_zcore=FALSE)
-# head(null_pval)
-
-```
-
-## Computing emprical p-value
-
-- Quantile empirical p-value, require null pvalues
-- Storey empirical-pvalue, require null zscore
-
-```{r}
-# quantile_empirical<- quantile_empirical_pvalue(p_values = deg$p_value,  null_p_values= null_pval)
-# 
-# deg_quantile_empirical_pvalue<- cbind(deg, empirical_pvalue=quantile_empirical)
-# deg_quantile_empirical_pvalue_df<- deg_quantile_empirical_pvalue %>% mutate(empirical_BH=p.adjust(empirical_pvalue, method = "BH"))
-# 
-# head(deg_quantile_empirical_pvalue_df)
-# 
-# head(deg_quantile_empirical_pvalue_df[which(deg_quantile_empirical_pvalue_df$empirical_BH < 0.05),])
+hist(deg$p_value)
 ```
 
 
+## Use residual permutation to compute p-values under the null
+We want to generate p-values under the null, in order to compute empirical p-values. Therefore, we create a ``residual permuted" trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. 
 
 
+```{r}
+n_permute <- 100
+permuted_trait <- matrix(NA, nrow = nrow(phenotypes), ncol = n_permute)
 
+# generated permuted traits (by residual permutation)
+set.seed(12)
+for (i in 1:n_permute){
+  permuted_trait[,i] <- permute_resids_trait(pheno = phenotypes,
+                                                   trait = trait,
+                                                   covariates_string = covariates_string)
+}
+
+# perform differential expression analysis for each of the permuted traits and save z-scores
+# and p-values (we don't really need both, this is for demonstration)
+null_z_scores <- null_pvals <- matrix(NA, nrow = nrow(deg), ncol = n_permute)
+
+for (i in 1:n_permute){
+  phenotypes$perm_trait <- permuted_trait[,i]
+  deg_perm <- lm_count_mat(count_matrix=clean_count_matrix, 
+                    pheno=phenotypes, 
+                    trait="perm_trait", 
+                    covariates_string=covariates_string,
+                    gene_IDs=NULL, 
+                    log_transform = "log_replace_half_min")
+  null_z_scores[,i] <- deg_perm$z_score
+  null_pvals[,i] <- deg_perm$p_value
+}
+
+```
+
+# Computing emprical p-values
+We demonstrate computing quantile empirical p-values and Storey empirical p-values (see manuscript).
+
+```{r}
+
+
+quantile_empirical_pvals <- compute_empirical_pvalues(
+                                  statistics = deg$p_value,
+                                  null_statistics = as.numeric(null_pvals),
+                                  stat_type = "p_value", 
+                                  empirical_type = "quantile")
+
+storey_empirical_pvals <- compute_empirical_pvalues(
+                                  statistics = deg$z_score,
+                                  null_statistics = as.numeric(null_z_scores),
+                                  stat_type = "z_score",
+                                  empirical_type = "storey"
+)
+
+```
+
+The distribution of the empirical p-values based on the quantile method:
+```{r}
+hist(quantile_empirical_pvals)
+```
+
+The distribution of the empirical p-values based on Storey's implementation: 
+```{r}
+hist(storey_empirical_pvals)
+```
+
+Alternatively, this analysis can be done in a single function 
+(here, stat_type is always z_score)
+
+```{r}
+res <- lm_count_mat_emp_pval(count_matrix = clean_count_matrix, 
+                             n_permute = n_permute, 
+                             seed = 12, 
+                             pheno=phenotypes, 
+                             trait = trait,
+                             covariates_string=covariates_string,
+                             gene_IDs=NULL, 
+                             log_transform = "log_replace_half_min", 
+                             empirical_type = "storey")
+
+```

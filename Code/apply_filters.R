@@ -36,7 +36,7 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
   # check missingness
   na_inds <- which(is.na(count_matrix))
   if (length(na_inds) > 0){
-    messsage(paste("There are", length(na_inds), "missing values, setting them to zero"))
+    message(paste("There are", length(na_inds), "missing values, setting them to zero"))
     count_matrix[na_inds] <- 0
   }
   
