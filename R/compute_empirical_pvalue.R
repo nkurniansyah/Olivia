@@ -126,7 +126,7 @@ compute_storey_empirical_pvalues <- function(statistics, null_statistics){
 #'
 
 
-permutataion_pvalues<-function(pvalue, null_pval){
+permutation_pvalues<-function(pvalue, null_pval){
   perm_pval<-sum(null_pval < pvalue)/length(null_pval)
   perm_pval
 }

@@ -5,7 +5,7 @@
 #' @param count_matrix  A matrix of gene counts (possibly transformed). rows are genes, columns are individuals
 #' @param pheno A data frame of phenotype data, includes the trait and covariates.
 #' @param traits Characters, the name of the exposure variables. The traits should columns in pheno.
-#' @param covariates_string A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age + as.factor(sex)"
+#' @param covariates_string A character string with specifying the covariates, include "as.factor" statements. example: covariates_string = "age + as.factor(sex)"
 #' @param log_transform One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs A vector of selection of gene IDs, NULL if all genes are tested
 #' @return Linear regression results as a data frame with columns geneID, beta.Trait.1,beta.Trait.1 ,se,t_stat (join t-statistic),p_value(join p-value),fdr_bh ,z_score (transformed by p-value)

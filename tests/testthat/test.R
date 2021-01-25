@@ -1,17 +1,18 @@
-.testData<- function(row=1000, col=20){
+.testData<- function(n_gene=1000, n_samples=20){
   set.seed(0)
-  m0 <- matrix(0, row, col)
+  m0 <- matrix(0, n_gene, n_samples)
 
-  count_mat<-apply(m0, c(1,2), function(x) sample(c(0,1:row),1))
+  count_mat<-apply(m0, c(1,2), function(x) sample(c(0,1:n_gene),1))
 
-  rownames(count_mat)<- paste0("gene.",1:row)
-  colnames(count_mat)<- paste0("sample.",1:col)
-
-  count_mat[1:10,1:10]
+  rownames(count_mat)<- paste0("gene_",1:n_gene)
+  colnames(count_mat)<- paste0("sample_",1:col)
 
 
-  pheno<- data.frame(Age=runif(col,40,100),Sex=sample(c("F","M"), col, replace=TRUE, prob=c(0.7, 0.3)),
-                     Trait.1=rnorm(col,10,5), Trait.2= rnorm(col,4,2), Trait.3=sample(c("1","0"), col, replace=TRUE, prob=c(0.6, 0.4)))
+  pheno<- data.frame(Age=runif(col,40,100),
+                     Sex=sample(c("F","M"), n_samples, replace=TRUE, prob=c(0.7, 0.3)),
+                     Trait.1=rnorm(n_samples,10,5), 
+                     Trait.2= rnorm(n_samples,4,2), 
+                     Trait.3=sample(c(1,0), n_samples, replace=TRUE, prob=c(0.6, 0.4)))
 
   rownames(pheno)<- colnames(count_mat)
 
@@ -25,17 +26,17 @@ test_that("filter by gene", {
   set.seed(123)
   data<-.testData()
   gene_count<- data$gene_count
-  set.seed(5); genes<- sample(rownames(gene_count), 5)
-  expect_equal(length(genes), 5)
+  
+  n_sample_genes <- 5
+  genes<- sample(rownames(gene_count), n_sample_genes)
+  expect_equal(length(genes), n_sample_genes)
   expect_true(all(genes  %in% rownames(gene_count)))
 
   gene_selected<- filter_by_genes(count_matrix = gene_count, gene_IDs =genes )
 
-  expect_equal(nrow(gene_selected),5)
+  expect_equal(nrow(gene_selected),n_sample_genes)
 
-  expect_equal(rownames(gene_selected),c("gene.207","gene.697","gene.715","gene.834","gene.875"))
-
-  expect_message(filter_by_genes(count_matrix = gene_count, gene_IDs =genes ), "Filtering count_matrix to genes : gene.834 gene.875 gene.697 gene.207 gene.715")
+  expect_equal(rownames(gene_selected), genes)
 
 })
 
@@ -45,17 +46,18 @@ test_that("Median Normalization", {
   set.seed(123)
   data<-.testData()
   gene_count<- data$gene_count
+  median_expression_sum <- median(colSum(gene_count))
 
-  expect_equal(nrow(gene_count),1000)
-  expect_equal(ncol(gene_count),20)
   med_norm<- median_normalization(gene_count)
   expect_true(is.numeric(med_norm), TRUE)
-  expect_equal(rowSums(med_norm)[1],c(gene.1 = 8669.21637411038))
-  expect_equal(colSums(med_norm)[1],c(sample.1 = 498501.5))
+  expect_equal(all(colSums(med_norm) == median_expression_sum))
 
 })
 
 #(pheno, trait, covariates_string, seed = NULL, family="gaussian"
+
+
+
 
 
 test_that("Residual permutation function trait", {
@@ -63,19 +65,20 @@ test_that("Residual permutation function trait", {
   data<-.testData()
   pheno<- data$phenotype
   trait<-"Trait.1"
-  covariates<-"Age,Sex"
+  covariates<-"Age,Sex" # change to covariates_string which is like a formula
 
-  perm_resid<-permute_resids_trait(pheno = pheno,trait = trait,seed = NULL,covariates_string =covariates,
+  perm_resid<-permute_resids_trait(pheno = pheno,trait = trait,
+                                   seed = NULL,covariates_string =covariates,
                                    family = "gaussian")
 
   expect_equal(length(perm_resid), nrow(pheno))
 
-  expect_error(permute_resids_trait(pheno = pheno,trait = trait,seed = NULL,covariates_string =covariates,
+  expect_error(permute_resids_trait(pheno = pheno,trait = trait,
+                                    seed = NULL,covariates_string =covariates,
                                     family = "binomial"))
 
   binary_trait<-"Trait.3"
 
-  expect_true(all(na.omit(pheno[,binary_trait]) %in% 0:1))
 
   expect_error(permute_resids_trait(pheno = pheno,trait = trait,seed = NULL,covariates_string =covariates,
               family = "poisson"),"Requested family type is poisson allowed values are gaussian and binomial " )
@@ -205,12 +208,6 @@ test_that("log Transform Count", {
 })
 
 
-#apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
-#                          max_min = 5, range_min = 5, prop_zero_max = 0.8,
-##                          cv_min = NULL, cv_max = NULL,
-#                          max_to_median_max = NULL)
-
-
 
 test_that("Apply filters", {
   set.seed(123)
@@ -222,14 +219,19 @@ test_that("Apply filters", {
 
   gene_count_norm<- log_transform_count(count_matrix =gene_count, transform = "log_replace_half_min")
 
-  filter_gene<- apply_filters(count_matrix=gene_count_norm, median_min = 1, expression_sum_min = 10,
+  
+  # use the apply_filters command for each characteristic separately. 
+  
+  filtered_gene<- apply_filters(count_matrix=gene_count_norm, median_min = 1, expression_sum_min = 10,
                             max_min = 5, range_min = 5, prop_zero_max = 0.8,
                             cv_min = NULL, cv_max = NULL,
                             max_to_median_max = NULL)
-  expect_equal(dim(filter_gene),c(428L, 20L))
 
-  expect_equal(rowSums(filter_gene)[155],c(gene.361 = 173.40759606542))
+  # we want to see that after filtering, the data satisfies certain properties.
 
+  # make sure median number of transcripts is always at least 1: 
+  expect_true(all(apply(filtered_gene, 1, median) > 0))
+  
 
 })
 
@@ -238,14 +240,15 @@ test_that("Quantile empirical p-values", {
   set.seed(123)
   stat<- runif(1000,0,1)
   null_stat<- runif(100000,0,1)
-  emp_pval<-compute_quantile_empirical_pvalues(statistics=stat,null_statistics=null_stat)
+  emp_pval<-compute_quantile_empirical_pvalues(statistics=stat,
+                                               null_statistics=null_stat)
   expect_equal(length(stat),length(emp_pval))
-  expect_false( stat[2] >emp_pval[2])
-  expect_equal(emp_pval[10],0.45884)
+  expect_true( median(emp_pval) >0.48 & median(emp_pval) < 0.52)
+
 })
 
 
-
+# we don't need it-- we haven't developed it, we are just providing a wrapper.
 test_that("Storey empirical p-values", {
   set.seed(123)
   library(qvalue)
@@ -260,13 +263,11 @@ test_that("Storey empirical p-values", {
 
 
 test_that(" Permutation p-values", {
-  set.seed(123)
-  library(qvalue)
   pval<- 1e-05
   null_pval<-runif(100000,0,1)
-  perm_pval<-permutataion_pvalues(pvalue=pval,null_pval=null_pval)
+  perm_pval<-permutation_pvalues(pvalue=pval,null_pval=null_pval)
   expect_equal(length(pval),length(perm_pval))
-  expect_false( pval < perm_pval)
+  expect_true( abs(pval - perm_pval) < 1e-4)
 })
 
 
@@ -345,9 +346,11 @@ test_that("Wrapper fast Linear regression for single exposure ", {
   gene_count<- data$gene_count
   covars<-"Age,Sex"
 
-  gene_count_norm<- log_transform_count(count_matrix =gene_count, transform = "log_replace_half_min")
+  gene_count_norm<- log_transform_count(count_matrix =gene_count, 
+                                        transform = "log_replace_half_min")
 
-  filter_gene<- apply_filters(count_matrix=gene_count_norm, median_min = 1, expression_sum_min = 10,
+  filter_gene<- apply_filters(count_matrix=gene_count_norm, 
+                              median_min = 1, expression_sum_min = 10,
                               max_min = 5, range_min = 5, prop_zero_max = 0.7,
                               cv_min = NULL, cv_max = NULL,
                               max_to_median_max = NULL)
