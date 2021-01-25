@@ -1,20 +1,209 @@
 ---
-title: "Tutorial"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Tutorial}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+title: "NovaSeq"
+author: "Tamar Sofer & Nuzulul Kurniansyah"
+date: "12/29/2020"
+output: 
+  pdf_document:
+    toc: true
+  html_document:
+    toc: true
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 
-```{r setup}
 library(rnaseq)
+```
+
+
+
+# Introduction
+Here we demonstrate how to perform association analyses of continuous phenotypes using NovaSeq with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies". 
+
+# Installation and require packages
+
+To install, open R and type:
+```{r eval=F, echo=T }
+
+library("devtools")
+install_github("nkurniansyah/NovaSeq")
+library(NovaSeq)
 
 ```
+
+Novaseq require external packages from CRAN (dplyr) and Bioconductor(qvalue)
+
+```{r eval=F, echo=T }
+
+install.packages("dplyr")
+
+BiocManager::install("qvalue")
+
+```
+
+Load all the packages
+
+```{r,warning=FALSE,message=FALSE}
+library(dplyr)
+library(qvalue)
+```
+
+# Load example data
+
+## Load raw gene counts matrix 
+First we load the transcripts, where were obtained from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151243.  
+Note: we reformatted the transcripts matrix into desire form and embeded into NovaSeq package.
+
+```{r}
+
+data(rnaseq_count_matrix)
+rnaseq_count_matrix[1:5,1:5]
+```
+
+## Load simulated phenotypes
+We simulated in advance a data.frame phenotypes. 
+
+```{r}
+data(phenotype)
+head(phenotype)
+```
+
+We define the trait of interest to study as an exposure associated with genes It has to be a column name in the phenotype data.frame.
+
+```{r}
+trait <- "Trait.1"
+```
+
+We will adjust our analysis to the simulated covariates Age and Sex. The covriates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
+
+```{r}
+covariates_string <- "Age,Sex"
+```
+Note that we can also define the string to be "Age,as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
+
+Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the IDs overlap.
+```{r}
+IDs_both <- intersect(rownames(phenotype), colnames(rnaseq_count_matrix))
+rnaseq_matrix <- rnaseq_count_matrix[, IDs_both] 
+phenotypes <- phenotype[match(IDs_both,rownames(phenotype)),]
+```
+
+# Normalize the RNA-seq dataset
+
+We use median normalization in NovaSeq. However, users can use diffrent normalization method using diffrent packages, for example: estimateSizeFator(DESeq2) or TMM(edgeR).  
+Here we show how each of these is used. We move forward in this tutorial with the median normalization, because it was used in the manuscript. However, there are no downstream differences in how the methods are applied once the data is normalized. 
+
+
+## Median normalization
+
+```{r}
+median_norm<- median_normalization(rnaseq_matrix)
+
+```
+## estimateSizeFactor
+
+This method implemented in DESeq2.
+
+```{r eval=F, echo=T }
+ BiocManager::install("DEseq2")
+ library(DESeq2)
+
+  des_matrix <- DESeqDataSetFromMatrix(countData = rnaseq_matrix,
+                                       colData = phenotypes,
+                                       design = ~Age+Sex+Trait.1)
+
+  des_matrix <- estimateSizeFactors(des_matrix)
+
+  SizeFactor_norm <- counts(des_matrix, normalized=TRUE)
+```
+
+## TMM (Trimmed Mean of M-values)
+
+This method implemented in edgeR
+
+```{r eval=F, echo=T }
+ BiocManager::install("edgeR")
+ library(edgeR)
+ counts <- DGEList(rnaseq_matrix)
+
+ dgList<- calcNormFactors(counts, method = "TMM")
+
+ TMM_norm<- cpm(dgList)
+  
+```
+
+
+# Filtering transcripts
+
+Remove lowly express gene counts
+
+```{r}
+clean_count_matrix <- apply_filters(count_matrix = median_norm, 
+                                   median_min = 1, 
+                                   expression_sum_min = 10, 
+                                   max_min = 10, 
+                                   range_min = 5, 
+                                   prop_zero_max = 0.5)
+```
+
+
+After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining for differential expression analysis. 
+
+
+
+# Perform differential expression analysis
+
+We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values and Storey empirical p-values). In order to generate p-values under the null, we create a ``residual permuted" trait 100 times and perform differential expression analysis, and use the resulting p-values/ z score as our null p-values/ z-score. (see manuscript).
+
+```{r}
+set.seed(12)
+
+storey_emp<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
+                                  n_permute=100, gene_IDs=NULL,log_transform = "log_replace_half_min",
+                                  stat_type="z_score", empirical_type = "storey",
+                                  t_df = NULL, family="gaussian")
+head(storey_emp)
+
+```
+
+# Perform differential expression analysis using multiple exposure
+
+We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values and Storey empirical p-values) using multiple exposure. 
+
+
+```{r}
+set.seed(12)
+
+storey_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits="Trait.1,Trait.2", 
+                                             covariates_string,n_permute=100, gene_IDs=NULL,
+                                             log_transform = "log_replace_half_min",
+                                             stat_type="z_score", empirical_type = "storey",
+                                             t_df = NULL, family="gaussian")
+head(storey_emp_multi)
+
+
+```
+
+# Perform differential expression analysis using permutation
+
+We show how we perform differential expression analysis on selected transcripts using permutation method. we suggested to run 100000 permutation for single genes.
+
+
+```{r}
+set.seed(12)
+
+gene_names<-sample(rownames(clean_count_matrix),5)
+
+perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenotypes, trait, covariates_string,
+                                 n_permute=100000,
+                                 gene_IDs=gene_names,
+                                 log_transform = "log_replace_half_min",
+                                 seed = NULL,
+                                 family="gaussian")
+
+perm_res
+
+```
+
+
+
