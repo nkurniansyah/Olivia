@@ -183,6 +183,6 @@ lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_st
                                          empirical_type = empirical_type)
   deg$emp_pvals <- emp_pvals
   deg$bh_emp_pvals <- p.adjust(deg$emp_pvals, method = "BH")
-
+  rownames(deg)<-NULL
   return(deg)
 }
