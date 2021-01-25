@@ -1,0 +1,25 @@
+Package: rnaseq
+Type: Package
+Title: RNA-seq Analysis
+Version: 0.1.0
+Author: Tamar Sofer & Nuzulul Kurniansyah
+Maintainer: The package maintainer <nkurniansyah@bwh.harvard.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+    DESeq2,
+    edgeR,
+    qvalue,
+    dplyr
+RoxygenNote: 7.1.1
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
+Config/testthat/edition: 3
