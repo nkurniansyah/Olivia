@@ -12,7 +12,8 @@
 #' data(phenotype)
 #' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait(pheno=phenotype, trait=trait,
-#'                      covariates_string=covars, seed = NULL, family="gaussian")
+#'                      covariates_string=covars, 
+#'                      seed = NULL, family="gaussian")
 #' @export
 
 

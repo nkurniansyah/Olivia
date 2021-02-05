@@ -12,7 +12,7 @@
 #' data(rnaseq_count_matrix)
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' data("ENSG00000000003")
-#' covariates_string<-"Age,Sex"
+#' covariates_string<-"Age+Sex"
 #' trait<-"Trait.1"
 #' n_permute<- 100
 #' permuted_trait<- sapply(seq_len(n_permute), function(x){
@@ -31,12 +31,12 @@ lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, s
 
   covariates_string<- as.character(covariates_string)
 
-  covars<- unlist(strsplit(covariates_string, ","))
+  #covars<- unlist(strsplit(covariates_string, ","))
 
-  model_string<- paste(covars, collapse = "+")
+  #model_string<- paste(covars, collapse = "+")
 
 
-  #model_string <- paste(cov, "+", trait)
+  model_string <- paste(covariates_string, "+", trait)
   XX<-model.matrix(as.formula(paste0("~", model_string)), data=pheno)
   stopifnot(nrow(XX) == nrow(Ys))
   stopifnot(nrow(XX) == length(single_transcript))
@@ -78,7 +78,7 @@ lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, s
 #' @param count_matrix A matrix of gene counts (possibly transformed). rows are genes, columns are individuals
 #' @param pheno A data frame of phenotype data, includes the trait and covariates.
 #' @param trait A character, the name of the exposure variable. The trait should be a column in pheno.
-#' @param covariates_string A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"
+#' @param covariates_string A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "Age+as.factor(Sex)"
 #' @param log_transform One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs A vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute Number of permutation. Default is 100000 times
@@ -92,7 +92,7 @@ lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, s
 #' data(phenotype)
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' genes<-c("ENSG00000000003","ENSG00000000005","ENSG00000000419","ENSG00000000457","ENSG00000000460")
-#' covariates_string<-"Age,Sex"
+#' covariates_string<-"Age+Sex"
 #' trait<-"Trait.1"
 #' lm_count_mat_perm_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype,
 #'                        trait=trait, covariates_string= covariates_string,

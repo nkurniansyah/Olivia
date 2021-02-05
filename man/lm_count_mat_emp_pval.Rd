@@ -60,7 +60,7 @@ data(phenotype)
 data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 trait<-"Trait.1"
-covars<- "Age,Sex"
+covars<- "Age+Sex"
 stat<-"z_score"
 emp_type<-"storey"
 lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,

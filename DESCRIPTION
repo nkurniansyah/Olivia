@@ -1,4 +1,4 @@
-Package: rnaseq
+Package: OliviaSeq
 Type: Package
 Title: RNA-seq Analysis
 Version: 0.1.0

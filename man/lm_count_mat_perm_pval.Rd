@@ -23,7 +23,7 @@ lm_count_mat_perm_pval(
 
 \item{trait}{A character, the name of the exposure variable. The trait should be a column in pheno.}
 
-\item{covariates_string}{A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"}
+\item{covariates_string}{A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "Age+as.factor(Sex)"}
 
 \item{n_permute}{Number of permutation. Default is 100000 times}
 
@@ -48,7 +48,7 @@ data(rnaseq_count_matrix)
 data(phenotype)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 genes<-c("ENSG00000000003","ENSG00000000005","ENSG00000000419","ENSG00000000457","ENSG00000000460")
-covariates_string<-"Age,Sex"
+covariates_string<-"Age+Sex"
 trait<-"Trait.1"
 lm_count_mat_perm_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype,
                        trait=trait, covariates_string= covariates_string,

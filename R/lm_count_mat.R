@@ -15,7 +15,7 @@
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' data(phenotype)
 #' trait<-"Trait.1"
-#' covars<-"Age,Sex"
+#' covars<-"Age+Sex"
 #' log_transform<-"log_replace_half_min"
 #' lm_count_mat(count_matrix=rnaseq_count_matrix,pheno=phenotype,trait=trait,
 #'              covariates_string=covars, log_transform=log_transform)
@@ -38,13 +38,12 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 
   count_matrix <- t(count_matrix)
 
-  covariates_string<- as.character(covariates_string)
+  #covariates_string<- as.character(covariates_string)
 
-  covars<- unlist(strsplit(covariates_string, ","))
+  #covars<- unlist(strsplit(covariates_string, ","))
 
 
-  model_string <- c(covars, trait)
-  model_string<- paste(model_string, collapse = "+")
+  model_string <- paste0(covars,"+",trait)
   XX<-model.matrix(as.formula(paste0("~", model_string)), data=pheno)
   XtXinv <- solve(t(XX) %*% as.matrix(XX))
   XtXinv_se_arg <- sqrt(XtXinv[trait,trait])
@@ -98,7 +97,7 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 #' data(rnaseq_count_matrix)
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' trait<-"Trait.1"
-#' covars<- "Age,Sex"
+#' covars<- "Age+Sex"
 #' stat<-"z_score"
 #' emp_type<-"storey"
 #' lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,

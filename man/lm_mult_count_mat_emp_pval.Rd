@@ -26,7 +26,7 @@ lm_mult_count_mat_emp_pval(
 
 \item{traits}{Characters, the name of the exposure variable. The traits should be a column in pheno.}
 
-\item{covariates_string}{A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"}
+\item{covariates_string}{A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age+as.factor(sex)"}
 
 \item{n_permute}{number of computing residual permutation. Default is 100 times}
 

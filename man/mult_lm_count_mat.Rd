@@ -39,7 +39,7 @@ data(phenotype)
 data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 traits<-c("Trait.1","Trait.2")
-covars<- "Age,Sex"
+covars<- "Age+Sex"
 mult_lm_count_mat(count_matrix=rnaseq_count_matrix,pheno = phenotype,traits = traits,
                   covariates_string=covars)
 }

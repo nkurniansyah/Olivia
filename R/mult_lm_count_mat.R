@@ -16,7 +16,7 @@
 #' data(rnaseq_count_matrix)
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' traits<-c("Trait.1","Trait.2")
-#' covars<- "Age,Sex"
+#' covars<- "Age+Sex"
 #' mult_lm_count_mat(count_matrix=rnaseq_count_matrix,pheno = phenotype,traits = traits,
 #'                   covariates_string=covars)
 #' @export
@@ -25,7 +25,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
                               gene_IDs=NULL, log_transform = "log_replace_half_min"){
   traits<- as.character(traits)
 
-  traits<- unlist(strsplit(traits, ","))
+
   stopifnot(colnames(count_matrix) == rownames(pheno), all(is.element(traits, colnames(pheno))))
 
 
@@ -45,7 +45,6 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 
   covariates_string<- as.character(covariates_string)
 
-  covars<- unlist(strsplit(covariates_string, ","))
 
 
   model_string <- c(covars, traits)
@@ -64,7 +63,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
   # effect sizes: each column correspond to a different transcript
   betas <- betas_mat[traits,]
   betas_val<- t(betas)
-  colnames(betas_val)<- c(paste0("beta:",traits))
+  colnames(betas_val)<- c(paste0("beta_",traits))
 
   resid_Ys <-count_matrix - XX %*% XXproj %*% count_matrix
   sum_squares_resids <- colSums(resid_Ys^2)
@@ -90,7 +89,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 #' @param count_matrix  A matrix of gene counts (possibly transformed). rows are genes, columns are individuals
 #' @param pheno A data frame phenotype data, includes the trait and covariates.
 #' @param traits Characters, the name of the exposure variable. The traits should be a column in pheno.
-#' @param covariates_string A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"
+#' @param covariates_string A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age+as.factor(sex)"
 #' @param log_transform One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs : vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute number of computing residual permutation. Default is 100 times
@@ -127,7 +126,6 @@ lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_st
 
 
 
-
   deg <- mult_lm_count_mat(count_matrix=count_matrix,
                       pheno=pheno,
                       traits=traits,
@@ -138,8 +136,6 @@ lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_st
   message("Performing residual permutation to generate permuted trait...")
 
   traits<- as.character(traits)
-
-  traits<- unlist(strsplit(traits, ","))
 
   multi_permuted_trait<- lapply(seq_along(traits),function(z){
     permuted_trait<-sapply(seq_len(n_permute), function(x){
