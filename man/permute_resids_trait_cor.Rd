@@ -39,7 +39,7 @@ Power Simulations
 \examples{
 data(phenotype)
 data(ENSG00000000003)
-trait<-"Trait.1"; covars="Age,Sex"
+trait<-"Trait.1"; covars="Age+Sex"
 permute_resids_trait_cor(pheno= phenotype,trait=trait,
                          covariates_string=covars, required_cor=0.3,
                          gene_exp=ENSG00000000003,seed=NULL, family="gaussian")

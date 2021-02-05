@@ -18,7 +18,7 @@ mult_lm_count_mat(
 
 \item{pheno}{A data frame of phenotype data, includes the trait and covariates.}
 
-\item{covariates_string}{A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age + as.factor(sex)"}
+\item{covariates_string}{A character string with specifying the covariates, include "as.factor" statements. example: covariates_string = "age + as.factor(sex)"}
 
 \item{traits}{Characters, the name of the exposure variables. The traits should columns in pheno.}
 

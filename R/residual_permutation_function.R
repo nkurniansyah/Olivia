@@ -10,18 +10,20 @@
 #' @return Vector of trait values after residual permuted
 #' @examples
 #' data(phenotype)
-#' trait<-"Trait.1"; covars="Age,Sex"
+#' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait(pheno=phenotype, trait=trait,
 #'                      covariates_string=covars, seed = NULL, family="gaussian")
 #' @export
 
 
+
 permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, family="gaussian"){
 
   if (!is.null(seed)) set.seed(seed)
-  covars<- unlist(strsplit(covariates_string, ","))
-
-  if(!all(covars %in% colnames(pheno))) stop("covariates not found in the phenotype")
+  
+  col_names<- unlist(strsplit(covariates_string,split='+', fixed=TRUE))
+  
+  if(!all(col_names %in% colnames(pheno))) stop("covariates not found in the phenotype")
 
   if(!all(trait %in% colnames(pheno))) stop("trait not found in the phenotype")
 
@@ -33,18 +35,17 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, f
                "allowed values are gaussian and binomial", "\n"))
   }
 
-  #covariates_string<- as.character(covariates_string)
-  #cov<- gsub(",","+",covariates_string)
+  
 
   if(family=="gaussian"){
-    fit<- lm(as.formula(paste(trait, paste(covars, collapse = "+"),sep = "~")), data = pheno)
+    fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 
   }else if(family=="binomial"){
 
     stopifnot(all(na.omit(pheno[,trait]) %in% 0:1))
 
     pheno[,trait]<-as.factor( pheno[,trait])
-    fit<- glm(as.formula(paste(trait, paste(covars, collapse = "+"),sep = "~")), family = binomial(link="logit"),data = pheno)
+    fit<- glm(as.formula(paste(trait, paste(covariates_string),sep = "~")), family = binomial(link="logit"),data = pheno)
 
   }
   # get residual
@@ -70,7 +71,7 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, f
 #' @examples
 #' data(phenotype)
 #' data(ENSG00000000003)
-#' trait<-"Trait.1"; covars="Age,Sex"
+#' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait_cor(pheno= phenotype,trait=trait,
 #'                          covariates_string=covars, required_cor=0.3,
 #'                          gene_exp=ENSG00000000003,seed=NULL, family="gaussian")
@@ -88,9 +89,9 @@ permute_resids_trait_cor <- function(pheno,
 
   if (!is.null(seed)) set.seed(seed)
 
-  covars<- unlist(strsplit(covariates_string, ","))
-
-  if(!all(covars %in% colnames(pheno))) stop("covariates not found in the phenotype")
+  col_names<- unlist(strsplit(covariates_string,split='+', fixed=TRUE))
+  
+  if(!all(col_names %in% colnames(pheno))) stop("covariates not found in the phenotype")
 
   if(!all(trait %in% colnames(pheno))) stop("trait not found in the phenotype")
 
@@ -105,13 +106,13 @@ permute_resids_trait_cor <- function(pheno,
 
   if(family=="gaussian"){
 
-    fit<- lm(as.formula(paste(trait, paste(covars, collapse = "+"),sep = "~")), data = pheno)
+    fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 
   }else if(family=="binomial"){
 
     stopifnot(all(na.omit(pheno[,trait]) %in% 0:1))
     pheno[,trait]<-as.factor( pheno[,trait])
-    fit<- glm(as.formula(paste(trait, paste(covars, collapse = "+"),sep = "~")), family = binomial(link="logit"),data = pheno)
+    fit<- glm(as.formula(paste(trait, paste(covars),sep = "~")), family = binomial(link="logit"),data = pheno)
 
   }
 
