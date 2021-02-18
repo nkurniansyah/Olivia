@@ -25,8 +25,6 @@
 
 
 
-
-
 lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, single_transcript){
 
 

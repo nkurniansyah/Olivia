@@ -102,7 +102,6 @@ permute_resids_trait_cor <- function(pheno,
                "allowed values are continous and binary", "\n"))
   }
 
-
   if(outcome_type=="continous"){
 
     fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
