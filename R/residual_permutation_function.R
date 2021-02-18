@@ -21,10 +21,6 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, o
 
   if (!is.null(seed)) set.seed(seed)
   
-  col_names<- unlist(strsplit(covariates_string,split='+', fixed=TRUE))
-  
-  if(!all(col_names %in% colnames(pheno))) stop("covariates not found in the phenotype")
-
   if(!all(trait %in% colnames(pheno))) stop("trait not found in the phenotype")
 
 
@@ -88,9 +84,7 @@ permute_resids_trait_cor <- function(pheno,
 
   if (!is.null(seed)) set.seed(seed)
 
-  col_names<- unlist(strsplit(covariates_string,split='+', fixed=TRUE))
-  
-  if(!all(col_names %in% colnames(pheno))) stop("covariates not found in the phenotype")
+
 
   if(!all(trait %in% colnames(pheno))) stop("trait not found in the phenotype")
 
