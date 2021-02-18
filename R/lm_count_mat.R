@@ -59,13 +59,14 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
   se_betas <- sqrt(sigmas_square)*XtXinv_se_arg
 
   test_stats <- betas/se_betas
-  t_pval <- 2*pt(abs(test_stats), lower.tail=FALSE, df = nrow(count_matrix) - numExplan)
+  t_stat_df <- nrow(count_matrix) - numExplan
+  t_pval <- 2*pt(abs(test_stats), lower.tail=FALSE, df = t_stat_df)
   res <- data.frame(geneID = colnames(count_matrix), beta = betas,
-                    se = se_betas, t_stat = test_stats, p_value = t_pval)
+                    se = se_betas, t_stat = test_stats, 
+                    t_stat_df = t_stat_df, p_value = t_pval)
 
   rownames(res)<-NULL
-  res<- res %>% mutate(fdr_bh= p.adjust(p_value, method = "BH"),
-                       z_score= qnorm(1-(p_value/2))*sign(beta))
+  res<- res %>% mutate(fdr_bh= p.adjust(p_value, method = "BH"))
   return(res)
 }
 

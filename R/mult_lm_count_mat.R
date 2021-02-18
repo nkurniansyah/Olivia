@@ -73,11 +73,10 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
   Joint_stats <- Joint_stats_arg2/sigmas_square
   Joint_p_value <- pchisq(Joint_stats, df = length(traits), lower.tail = FALSE)
 
-  res<- data.frame(geneID = colnames(count_matrix),betas_val,t_stat = Joint_stats,p_value = Joint_p_value) %>%
+  res<- data.frame(geneID = colnames(count_matrix),betas_val,chisq_stat = Joint_stats,
+                   chisq_stat_df = length(traits), p_value = Joint_p_value) %>%
         mutate(fdr_bh= p.adjust(p_value, method = "BH"))
 
-  res_beta<-sign(res[, (grepl("beta", names(res)))]) %>% mutate(beta_sign=apply(., 1, prod)) %>% dplyr::select(beta_sign)
-  res<- data.frame(res,res_beta)  %>% mutate( z_score= qnorm(1-(p_value/2))*sign(beta_sign)) %>% dplyr::select(-beta_sign)
   return(res)
 }
 
