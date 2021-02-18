@@ -21,7 +21,7 @@ filter_by_genes <- function(count_matrix, gene_IDs){
   }
   genes_avail <- gene_IDs[which(gene_IDs %in% rownames(count_matrix))]
   if (length(genes_avail) == 0){
-    stop("None of the requested genes are in the count_matrix, stopping...")
+    stop("None of the requested genes are in the count_matrix, stopping..")
   }
 
   message(paste(c("Filtering count_matrix to genes :", genes_avail), collapse= " "))
