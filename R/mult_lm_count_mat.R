@@ -76,7 +76,9 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
   Joint_stats <- Joint_stats_arg2/sigmas_square
   Joint_p_value <- pchisq(Joint_stats, df = length(traits), lower.tail = FALSE)
 
-  res<- data.frame(geneID = colnames(count_matrix),betas_val,chisq_stat = Joint_stats,chisq_stat_df= length(traits),p_value = Joint_p_value) %>%
+
+  res<- data.frame(geneID = colnames(count_matrix),betas_val,chisq_stat = Joint_stats,
+                   chisq_stat_df = length(traits), p_value = Joint_p_value) %>%
         mutate(fdr_bh= p.adjust(p_value, method = "BH"))
 
   return(res)

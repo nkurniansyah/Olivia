@@ -62,8 +62,8 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
   test_stats <- betas/se_betas
   t_stat_df <- nrow(count_matrix) - numExplan
   t_pval <- 2*pt(abs(test_stats), lower.tail=FALSE, df = t_stat_df)
-  res <- data.frame(geneID = colnames(count_matrix), beta = betas,
-                    se = se_betas, t_stat = test_stats,t_stat_df=t_stat_df, p_value = t_pval)
+  res <- data.frame(geneID = colnames(count_matrix), beta = betas, se = se_betas, 
+                    t_stat = test_stats,t_stat_df=t_stat_df, p_value = t_pval)
 
   rownames(res)<-NULL
   
