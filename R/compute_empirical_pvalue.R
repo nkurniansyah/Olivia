@@ -3,7 +3,7 @@
 #' @param statistics A vector of calculated test statistics
 #' @param null_statistics A vactor of permuted test statistic
 #' @param empirical_type Type of empirical pvalue : quantile or storey
-#' @param stat_type Statistic type : p_value (quantile empirical pvalue), t_stat and z_score (storey)
+#' @param stat_type Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey)
 #' @param t_df A vector of calculated t-statistic
 #' @return A vector of empirical p-value
 #' @examples
