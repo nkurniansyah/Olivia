@@ -13,4 +13,3 @@ median_normalization <- function(count_matrix){
   median_norm <- t(t(count_matrix)/(colSums(count_matrix))*median(colSums(count_matrix)))
   return(median_norm)
 }
-
