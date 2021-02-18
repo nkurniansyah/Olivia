@@ -5,20 +5,19 @@
 #' @param trait A continuous/binary variable to permute while preserving association with covariates
 #' @param covariates_string Covariates to adjust for, as a string used in regression model
 #' @param seed  Random seed
-#' @param family A description of the error distribution to be used in the model. gaussian if the variable is continous,
-#'               and binomial if variable is binary. The default is "gaussian"
+#' @param outcome_type continous and binary, default is continous
 #' @return Vector of trait values after residual permuted
 #' @examples
 #' data(phenotype)
 #' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait(pheno=phenotype, trait=trait,
 #'                      covariates_string=covars, 
-#'                      seed = NULL, family="gaussian")
+#'                      seed = NULL, outcome_type="continous")
 #' @export
 
 
 
-permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, family="gaussian"){
+permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, outcome_type="continous"){
 
   if (!is.null(seed)) set.seed(seed)
   
@@ -31,17 +30,17 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, f
 
   stopifnot(trait %in% colnames(pheno))
 
-  if (!is.element(family, c("gaussian", "binomial"))){
-    stop(paste("Requested family type is", family,
-               "allowed values are gaussian and binomial", "\n"))
+  if (!is.element(outcome_type, c("continous", "binary"))){
+    stop(paste("Requested family type is", outcome_type,
+               "allowed values are continous and binary", "\n"))
   }
 
   
 
-  if(family=="gaussian"){
+  if(outcome_type=="continous"){
     fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 
-  }else if(family=="binomial"){
+  }else if(outcome_type=="binary"){
 
     stopifnot(all(na.omit(pheno[,trait]) %in% 0:1))
 
@@ -66,8 +65,7 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, f
 #' @param gene_exp Selected gene/transcript to simulate as associated with the trait
 #' @param required_cor Corelations value simulating the strength of association between trait and gene_exp
 #' @param seed Random seed
-#' @param family A description of the error distribution to be used in the model. gaussian if the variable is continous,
-#'               and binomial if variable is binary. The default is "gaussian"
+#' @param outcome_type continous and binary
 #' @return A vector permuted trait that is associated with gene_exp
 #' @examples
 #' data(phenotype)
@@ -75,7 +73,7 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, f
 #' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait_cor(pheno= phenotype,trait=trait,
 #'                          covariates_string=covars, required_cor=0.3,
-#'                          gene_exp=ENSG00000000003,seed=NULL, family="gaussian")
+#'                          gene_exp=ENSG00000000003,seed=NULL, outcome_type="continous")
 #' @export
 
 
@@ -86,7 +84,7 @@ permute_resids_trait_cor <- function(pheno,
                                      gene_exp,
                                      required_cor,
                                      seed = NULL,
-                                     family="gaussian"){
+                                     outcome_type="gaussian"){
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -99,17 +97,17 @@ permute_resids_trait_cor <- function(pheno,
 
   stopifnot(trait %in% colnames(pheno))
 
-  if (!is.element(family, c("gaussian", "binomial"))){
-    stop(paste("Requested family type is", family,
+  if (!is.element(outcome_type, c("gaussian", "binomial"))){
+    stop(paste("Requested family type is", outcome_type,
                "allowed values are gaussian and binomial", "\n"))
   }
 
 
-  if(family=="gaussian"){
+  if(outcome_type=="continous"){
 
     fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 
-  }else if(family=="binomial"){
+  }else if(outcome_type=="binary"){
 
     stopifnot(all(na.omit(pheno[,trait]) %in% 0:1))
     pheno[,trait]<-as.factor( pheno[,trait])

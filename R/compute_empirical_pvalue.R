@@ -18,8 +18,8 @@
 
 compute_empirical_pvalues <- function(statistics,
                                       null_statistics,
-                                      empirical_type = "quantile",
-                                      stat_type = "p_value",
+                                      empirical_type = "storey",
+                                      stat_type = "t_stat",
                                       t_df = NULL){
 
   if (!is.element(empirical_type, c("quantile", "storey"))){
@@ -27,31 +27,26 @@ compute_empirical_pvalues <- function(statistics,
                "allowed values are quantile and storey", "\n"))
   }
 
-  if (!is.element(stat_type, c("z_score", "p_value", "t_stat"))){
+  if (!is.element(stat_type, c("chisq_stat", "p_value", "t_stat"))){
     stop(paste("Provided statistics (stat_type) are", stat_type,
-               "allowed types are p_value, z_score, and t_stat", "\n"))
+               "allowed types are p_value, and t_stat", "\n"))
   }
-
 
   message(paste0("Run ",empirical_type," empirical p-values ","using ",stat_type))
 
   if (empirical_type == "quantile"){
-
-    if (stat_type == "z_score"){
-      statistics <- pchisq(statistics^2, df =1, lower.tail = FALSE)
-      null_statistics <- pchisq(null_statistics^2, df =1, lower.tail = FALSE)
-    }
 
     if (stat_type == "t_stat"){
       if (is.null(t_df)) stop("Missing degress of freedom (t_df) for t-stat")
       statistics <- 2*pt(abs(statistics), df = t_df, lower.tail = FALSE)
       null_statistics <- 2*pt(abs(null_statistics), df = t_df, lower.tail = FALSE)
     }
-
+    
     compute_quantile_empirical_pvalues(statistics, null_statistics)
+    
   } else{  # empirical_type == "storey"
     if (stat_type == "p_value")
-      stop("Storey empirical p-value need z-scores or t-statistics")
+      stop("Storey empirical  need chisq-statistics or t-statistics")
 
     compute_storey_empirical_pvalues(statistics, null_statistics)
   }

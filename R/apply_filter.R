@@ -1,5 +1,3 @@
-
-
 #'Filter gene counts matrix by applying various filters
 #'
 #'The purpose of filtering is to remove lowly express genes
@@ -48,7 +46,7 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
   max_vals <- apply(count_matrix,1,max)
   range_vals <- apply(count_matrix, 1, function(x) max(x) - min(x))
   prop_zero_vals <- apply(count_matrix, 1, function(x) mean(x == 0))
-  max_to_median_ratio_vals <- apply(count_matrix, 1, function(x) max(x)/median(x))
+  max_to_median_vals <- apply(count_matrix, 1, function(x) max(x)/median(x))
   cv_vals <- apply(count_matrix, 1, function(x) sd(x)/mean(x))
 
   message("Appying filters...")
@@ -104,8 +102,8 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
 
   if (!is.null(max_to_median_max)){
     inds_max_to_median_max <- which(max_to_median_vals > max_to_median_max)
-    message(paste("There are", length(inds_max_to_median_max), "transcripts with coefficient of
-                  variation higher than", max_to_median_max))
+    message(paste("There are", length(inds_max_to_median_max), "transcripts with max/median  value
+                   higher than", max_to_median_max))
     inds_rm <- c(inds_rm, inds_max_to_median_max)
   }
 

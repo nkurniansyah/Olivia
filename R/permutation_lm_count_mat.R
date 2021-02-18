@@ -24,6 +24,9 @@
 #' @export
 
 
+
+
+
 lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, single_transcript){
 
 
@@ -83,9 +86,8 @@ lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, s
 #' @param gene_IDs A vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute Number of permutation. Default is 100000 times
 #' @param seed Random seed
-#' @param family A description of the error distribution to be used in the model. gaussian if the variable is continous,
-#'               and binomial if variable is binary. The default is "gaussian"
-#' @return Linear regression results as a data frame with columns GeneID, Beta,SE,T_stat (t-statistic),P_value, Z_score (transformed by p-value), perm_pval
+#' @param outcome_type continous and binary. Default is continous
+#' @return Linear regression results as a data frame with columns GeneID, beta,se,t_stat (t-statistic), t_stat_df(degree of freedom),p_value, perm_pval
 #' @examples
 #' library(dplyr)
 #' data(rnaseq_count_matrix)
@@ -109,7 +111,7 @@ lm_count_mat_perm_pval <-function(count_matrix, pheno, trait, covariates_string,
                                  gene_IDs=NULL,
                                  log_transform = "log_replace_half_min",
                                  seed = NULL,
-                                 family="gaussian"){
+                                 outcome_type="continous"){
 
   if(is.null(gene_IDs)) message("No list gene ID/s are found. It will run permutations for all the genes and it will take long times")
 
@@ -121,6 +123,8 @@ lm_count_mat_perm_pval <-function(count_matrix, pheno, trait, covariates_string,
                       covariates_string=covariates_string,
                       gene_IDs=gene_IDs,
                       log_transform = log_transform)
+  
+  deg<- deg %>% dplyr::select(-fdr_bh)
 
 
   # generated permuted traits (by residual permutation)
@@ -128,7 +132,7 @@ lm_count_mat_perm_pval <-function(count_matrix, pheno, trait, covariates_string,
   permuted_trait<- sapply(seq_len(n_permute), function(x){
   permute_resids_trait(pheno = pheno,
                       trait = trait,
-                      covariates_string = covariates_string, family = family, seed = seed)
+                      covariates_string = covariates_string, outcome_type = outcome_type)
   })
 
   count_matrix <- log_transform_count(count_matrix, transform = log_transform)
@@ -151,7 +155,7 @@ lm_count_mat_perm_pval <-function(count_matrix, pheno, trait, covariates_string,
 
 
     deg_selected<-deg[which(deg$geneID==gene_IDs[y]),]
-    perm_pval <- permutataion_pvalues(pvalue = deg_selected$p_value, null_pval = permute_pval)
+    perm_pval <- permutation_pvalues(pvalue = deg_selected$p_value, null_pval = permute_pval)
     new_deg<-cbind(deg_selected,perm_pval)
 
   })

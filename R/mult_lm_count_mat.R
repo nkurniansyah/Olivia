@@ -8,7 +8,7 @@
 #' @param covariates_string A character string with specifying the covariates, include "as.factor" statements. example: covariates_string = "age + as.factor(sex)"
 #' @param log_transform One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs A vector of selection of gene IDs, NULL if all genes are tested
-#' @return Linear regression results as a data frame with columns geneID, beta.Trait.1,beta.Trait.1 ,se,t_stat (join t-statistic),p_value(join p-value),fdr_bh ,z_score (transformed by p-value)
+#' @return Linear regression results as a data frame with columns geneID, beta.Trait.1,beta.Trait.1 ,se,chisq_stat,chisq_stat_df,p_value(join p-value),fdr_bh
 #' @examples
 #' set.seed(123)
 #' library(dplyr)
@@ -21,6 +21,9 @@
 #'                   covariates_string=covars)
 #' @export
 #'
+
+
+
 mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
                               gene_IDs=NULL, log_transform = "log_replace_half_min"){
   traits<- as.character(traits)
@@ -73,11 +76,9 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
   Joint_stats <- Joint_stats_arg2/sigmas_square
   Joint_p_value <- pchisq(Joint_stats, df = length(traits), lower.tail = FALSE)
 
-  res<- data.frame(geneID = colnames(count_matrix),betas_val,t_stat = Joint_stats,p_value = Joint_p_value) %>%
+  res<- data.frame(geneID = colnames(count_matrix),betas_val,chisq_stat = Joint_stats,chisq_stat_df= length(traits),p_value = Joint_p_value) %>%
         mutate(fdr_bh= p.adjust(p_value, method = "BH"))
 
-  res_beta<-sign(res[, (grepl("beta", names(res)))]) %>% mutate(beta_sign=apply(., 1, prod)) %>% dplyr::select(beta_sign)
-  res<- data.frame(res,res_beta)  %>% mutate( z_score= qnorm(1-(p_value/2))*sign(beta_sign)) %>% dplyr::select(-beta_sign)
   return(res)
 }
 
@@ -93,14 +94,13 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 #' @param log_transform One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs : vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute number of computing residual permutation. Default is 100 times
-#' @param stat_type Statistic type : p_value (quantile empirical pvalue), t_stat and z_score (storey). Default is z_score
+#' @param stat_type Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey). Default is z_score
 #' @param empirical_type Type of empirical pvalue : quantile or storey. Default  is storey
 #' @param t_df A vector of calculated t-statistic.Default is NULL
 #' @param seed Random seed
-#' @param family A description of the error distribution to be used in the model. gaussian if the variable is continous,
-#'               and binomial if variable is binary. The default is "gaussian"
+#' @param outcome_type continous and binary.Default is continous
 #' @return Linear regression results as a data frame with columns geneID, beta.Trait1,beta.Trait1 ,se,
-#'        t_stat (join t-statistic),p_value(join p-value),z_score (transformed by p-value),emp_pvals,bh_emp_pvals
+#'        chisq_stat,chisq_stat_df(degree of freedom),p_value(join p-value),emp_pvals,bh_emp_pvals
 #'
 #' @examples
 #' set.seed(123)
@@ -110,17 +110,17 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 #' data(rnaseq_count_matrix)
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' traits<-c("Trait.1","Trait.2")
-#' covars<- "Age,Sex"
+#' covars<- "Age+Sex"
 #' lm_mult_count_mat_emp_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype, traits=traits, covariates_string=covars,
-#'                         stat_type="z_score", empirical_type = "storey",family="gaussian")
+#'                         stat_type="chisq_stat", empirical_type = "storey",outcome_type="continous")
 #' @export
 #'
 
 
 lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_string,
                                       n_permute=100, gene_IDs=NULL, log_transform = "log_replace_half_min",
-                                      seed = NULL, stat_type="z_score", empirical_type = "storey",
-                                      family="gaussian", t_df=NULL){
+                                      seed = NULL, stat_type="chisq_stat", empirical_type = "storey",
+                                      outcome_type="continous", t_df=NULL){
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -141,7 +141,7 @@ lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_st
     permuted_trait<-sapply(seq_len(n_permute), function(x){
       permute_resids_trait(pheno = pheno,
                            trait= traits[z], seed = seed,
-                           covariates_string = covariates_string, family = family)
+                           covariates_string = covariates_string, outcome_type = outcome_type)
     })
   })
 
