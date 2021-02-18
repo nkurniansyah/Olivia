@@ -22,8 +22,6 @@
 #' @export
 #'
 
-
-
 mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
                               gene_IDs=NULL, log_transform = "log_replace_half_min"){
   traits<- as.character(traits)
