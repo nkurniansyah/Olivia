@@ -88,7 +88,7 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 #' @param t_df A vector of calculated t-statistic.Default is NULL
 #' @param seed Random seed
 #' @param outcome_type continous and binary.Default is continous
-#' @return Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom) ,p_value, fdr_bh,,
+#' @return Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value, fdr_bh,,
 #'         emp_pvals,bh_emp_pvals
 #' @examples
 #' set.seed(123)
