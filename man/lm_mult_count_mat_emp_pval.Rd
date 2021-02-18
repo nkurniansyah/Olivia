@@ -13,9 +13,9 @@ lm_mult_count_mat_emp_pval(
   gene_IDs = NULL,
   log_transform = "log_replace_half_min",
   seed = NULL,
-  stat_type = "z_score",
+  stat_type = "chisq_stat",
   empirical_type = "storey",
-  family = "gaussian",
+  outcome_type = "continous",
   t_df = NULL
 )
 }
@@ -36,18 +36,17 @@ lm_mult_count_mat_emp_pval(
 
 \item{seed}{Random seed}
 
-\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and z_score (storey). Default is z_score}
+\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey). Default is z_score}
 
 \item{empirical_type}{Type of empirical pvalue : quantile or storey. Default  is storey}
 
-\item{family}{A description of the error distribution to be used in the model. gaussian if the variable is continous,
-and binomial if variable is binary. The default is "gaussian"}
+\item{outcome_type}{continous and binary.Default is continous}
 
 \item{t_df}{A vector of calculated t-statistic.Default is NULL}
 }
 \value{
 Linear regression results as a data frame with columns geneID, beta.Trait1,beta.Trait1 ,se,
-       t_stat (join t-statistic),p_value(join p-value),z_score (transformed by p-value),emp_pvals,bh_emp_pvals
+       chisq_stat,chisq_stat_df(degree of freedom),p_value(join p-value),emp_pvals,bh_emp_pvals
 }
 \description{
 The function is to calculate DEG (Differential Expression Genes) analysis for multiple exposure using residual permuation approach to calculate empirical p-value
@@ -60,7 +59,7 @@ data(phenotype)
 data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 traits<-c("Trait.1","Trait.2")
-covars<- "Age,Sex"
+covars<- "Age+Sex"
 lm_mult_count_mat_emp_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype, traits=traits, covariates_string=covars,
-                        stat_type="z_score", empirical_type = "storey",family="gaussian")
+                        stat_type="chisq_stat", empirical_type = "storey",outcome_type="continous")
 }

@@ -84,7 +84,7 @@ permute_resids_trait_cor <- function(pheno,
                                      gene_exp,
                                      required_cor,
                                      seed = NULL,
-                                     outcome_type="gaussian"){
+                                     outcome_type="continous"){
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -97,9 +97,9 @@ permute_resids_trait_cor <- function(pheno,
 
   stopifnot(trait %in% colnames(pheno))
 
-  if (!is.element(outcome_type, c("gaussian", "binomial"))){
+  if (!is.element(outcome_type, c("continous", "binary"))){
     stop(paste("Requested family type is", outcome_type,
-               "allowed values are gaussian and binomial", "\n"))
+               "allowed values are continous and binary", "\n"))
   }
 
 

@@ -7,8 +7,8 @@
 compute_empirical_pvalues(
   statistics,
   null_statistics,
-  empirical_type = "quantile",
-  stat_type = "p_value",
+  empirical_type = "storey",
+  stat_type = "t_stat",
   t_df = NULL
 )
 }

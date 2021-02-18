@@ -13,7 +13,7 @@ lm_count_mat_perm_pval(
   gene_IDs = NULL,
   log_transform = "log_replace_half_min",
   seed = NULL,
-  family = "gaussian"
+  outcome_type = "continous"
 )
 }
 \arguments{
@@ -33,11 +33,10 @@ lm_count_mat_perm_pval(
 
 \item{seed}{Random seed}
 
-\item{family}{A description of the error distribution to be used in the model. gaussian if the variable is continous,
-and binomial if variable is binary. The default is "gaussian"}
+\item{outcome_type}{continous and binary. Default is continous}
 }
 \value{
-Linear regression results as a data frame with columns GeneID, Beta,SE,T_stat (t-statistic),P_value, Z_score (transformed by p-value), perm_pval
+Linear regression results as a data frame with columns GeneID, beta,se,t_stat (t-statistic), t_stat_df(degree of freedom),p_value, perm_pval
 }
 \description{
 The function is to calculate DEG (Differential Expression Genes) analysis for selected genes using multiple residual permuation results as outcome to calucate permutation p-value

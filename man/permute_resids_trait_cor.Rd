@@ -11,7 +11,7 @@ permute_resids_trait_cor(
   gene_exp,
   required_cor,
   seed = NULL,
-  family = "gaussian"
+  outcome_type = "continous"
 )
 }
 \arguments{
@@ -27,8 +27,7 @@ permute_resids_trait_cor(
 
 \item{seed}{Random seed}
 
-\item{family}{A description of the error distribution to be used in the model. gaussian if the variable is continous,
-and binomial if variable is binary. The default is "gaussian"}
+\item{outcome_type}{continous and binary}
 }
 \value{
 A vector permuted trait that is associated with gene_exp
@@ -42,5 +41,5 @@ data(ENSG00000000003)
 trait<-"Trait.1"; covars="Age+Sex"
 permute_resids_trait_cor(pheno= phenotype,trait=trait,
                          covariates_string=covars, required_cor=0.3,
-                         gene_exp=ENSG00000000003,seed=NULL, family="gaussian")
+                         gene_exp=ENSG00000000003,seed=NULL, outcome_type="continous")
 }

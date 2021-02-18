@@ -16,6 +16,7 @@
 #' @return Matrix of gene counts, with filtered (reduced) rows.
 #' @examples
 #' data(rnaseq_count_matrix)
+#' 
 #' apply_filters(count_matrix=rnaseq_count_matrix, median_min = 1, expression_sum_min = 10,max_min = 5,
 #'               range_min = 5, prop_zero_max = 0.8,cv_min = NULL, cv_max = NULL,
 #'               max_to_median_max = NULL)

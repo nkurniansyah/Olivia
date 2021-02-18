@@ -9,7 +9,7 @@ permute_resids_trait(
   trait,
   covariates_string,
   seed = NULL,
-  family = "gaussian"
+  outcome_type = "continous"
 )
 }
 \arguments{
@@ -21,8 +21,7 @@ permute_resids_trait(
 
 \item{seed}{Random seed}
 
-\item{family}{A description of the error distribution to be used in the model. gaussian if the variable is continous,
-and binomial if variable is binary. The default is "gaussian"}
+\item{outcome_type}{continous and binary, default is continous}
 }
 \value{
 Vector of trait values after residual permuted
@@ -35,5 +34,5 @@ data(phenotype)
 trait<-"Trait.1"; covars="Age+Sex"
 permute_resids_trait(pheno=phenotype, trait=trait,
                      covariates_string=covars, 
-                     seed = NULL, family="gaussian")
+                     seed = NULL, outcome_type="continous")
 }

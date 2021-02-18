@@ -11,7 +11,7 @@ test_that("Residual permutation function trait continous", {
   
   perm_resid<-permute_resids_trait(pheno = pheno,trait = trait,
                                    seed = NULL,covariates_string =covariates,
-                                   family = "gaussian")
+                                   outcome_type  = "continous")
   
   expect_true(all(names(perm_resid) %in% rownames(pheno)), TRUE)
   
@@ -30,7 +30,7 @@ test_that("Residual permutation function trait binary", {
   
   perm_resid<-permute_resids_trait(pheno = pheno,trait = trait,
                                    seed = NULL,covariates_string =covariates,
-                                   family = "binomial")
+                                   outcome_type = "binary")
   
   expect_true(all(names(perm_resid) %in% rownames(pheno)), TRUE)
   
@@ -51,7 +51,7 @@ test_that("Residual permutation function trait power", {
   
   
   perm_resid_power<-permute_resids_trait_cor(pheno = pheno,trait = trait,seed = 123,covariates_string =covariates,
-                                             family = "gaussian",gene_exp =single_gene_exp, required_cor = 0.3 )
+                                             outcome_type = "continous",gene_exp =single_gene_exp, required_cor = 0.3 )
   
   expect_true(all(names(perm_resid_power) %in% rownames(pheno)), TRUE)
   

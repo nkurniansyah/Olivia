@@ -13,10 +13,10 @@ lm_count_mat_emp_pval(
   gene_IDs = NULL,
   log_transform = "log_replace_half_min",
   seed = NULL,
-  stat_type = "z_score",
+  stat_type = "t_stat",
   empirical_type = "storey",
   t_df = NULL,
-  family = "gaussian"
+  outcome_type = "continous"
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ lm_count_mat_emp_pval(
 
 \item{trait}{A character, the name of the exposure variable. The trait should be a column in pheno}
 
-\item{covariates_string}{Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"}
+\item{covariates_string}{Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age+as.factor(sex)"}
 
 \item{n_permute}{number of computing residual permutation. Default is 100 times}
 
@@ -36,17 +36,16 @@ lm_count_mat_emp_pval(
 
 \item{seed}{Random seed}
 
-\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and z_score (storey). Default is z_score}
+\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey). Default is t_stat}
 
 \item{empirical_type}{Type of empirical pvalue : quantile or storey. Default  is storey}
 
 \item{t_df}{A vector of calculated t-statistic.Default is NULL}
 
-\item{family}{A description of the error distribution to be used in the model. gaussian if the variable is continous,
-and binomial if variable is binary. The default is "gaussian"}
+\item{outcome_type}{continous and binary.Default is continous}
 }
 \value{
-Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),p_value, fdr_bh,z_score (transformed by p-value),
+Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom) ,p_value, fdr_bh,,
         emp_pvals,bh_emp_pvals
 }
 \description{
@@ -61,8 +60,8 @@ data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 trait<-"Trait.1"
 covars<- "Age+Sex"
-stat<-"z_score"
-emp_type<-"storey"
+stat<-"t_stat"
+empirical_type<-"storey"
 lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,
-                      covariates_string=covars, stat_type=stat,empirical_type=emp_type)
+                      covariates_string=covars, stat_type="t_stat",empirical_type="storey", outcome_type="continous")
 }

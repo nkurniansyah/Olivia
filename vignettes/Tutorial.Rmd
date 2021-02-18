@@ -1,7 +1,7 @@
 ---
-title: "NovaSeq"
+title: "Olivia R package"
 author: "Tamar Sofer & Nuzulul Kurniansyah"
-date: "12/29/2020"
+date: "2/18/2021"
 output: 
   pdf_document:
     toc: true
@@ -18,7 +18,7 @@ library(rnaseq)
 
 
 # Introduction
-Here we demonstrate how to perform association analyses of continuous phenotypes using NovaSeq with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies". 
+Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies" \url{https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract}. 
 
 # Installation and require packages
 
@@ -26,12 +26,12 @@ To install, open R and type:
 ```{r eval=F, echo=T }
 
 library("devtools")
-install_github("nkurniansyah/NovaSeq")
+install_github("nkurniansyah/Olivia")
 library(NovaSeq)
 
 ```
 
-Novaseq require external packages from CRAN (dplyr) and Bioconductor(qvalue)
+Olivia require external packages from CRAN (dplyr) and Bioconductor(qvalue)
 
 ```{r eval=F, echo=T }
 
@@ -41,7 +41,7 @@ BiocManager::install("qvalue")
 
 ```
 
-Load all the packages
+Load packages
 
 ```{r,warning=FALSE,message=FALSE}
 library(dplyr)
@@ -52,7 +52,7 @@ library(qvalue)
 
 ## Load raw gene counts matrix 
 First we load the transcripts, where were obtained from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151243.  
-Note: we reformatted the transcripts matrix into desire form and embeded into NovaSeq package.
+Note: we reformatted the transcripts matrix into desired form and embedded them into Olivia package.
 
 ```{r}
 
@@ -61,27 +61,27 @@ rnaseq_count_matrix[1:5,1:5]
 ```
 
 ## Load simulated phenotypes
-We simulated in advance a data.frame phenotypes. 
+We simulated in advance a data.frame of phenotypes. 
 
 ```{r}
 data(phenotype)
 head(phenotype)
 ```
 
-We define the trait of interest to study as an exposure associated with genes It has to be a column name in the phenotype data.frame.
+We define the trait of interest to study as an exposure associated with genes. The trait/phenotype has to correspond to a column name in the phenotype data.frame.
 
 ```{r}
 trait <- "Trait.1"
 ```
 
-We will adjust our analysis to the simulated covariates Age and Sex. The covriates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
+We will adjust our analysis to the simulated covariates Age and Sex. The covariates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
 
 ```{r}
-covariates_string <- "Age,Sex"
+covariates_string <- "Age + Sex"
 ```
-Note that we can also define the string to be "Age,as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
+Note that we can also define the string to be "Age + as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
 
-Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the IDs overlap.
+Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the there are matching IDs.
 ```{r}
 IDs_both <- intersect(rownames(phenotype), colnames(rnaseq_count_matrix))
 rnaseq_matrix <- rnaseq_count_matrix[, IDs_both] 
@@ -90,8 +90,8 @@ phenotypes <- phenotype[match(IDs_both,rownames(phenotype)),]
 
 # Normalize the RNA-seq dataset
 
-We use median normalization in NovaSeq. However, users can use diffrent normalization method using diffrent packages, for example: estimateSizeFator(DESeq2) or TMM(edgeR).  
-Here we show how each of these is used. We move forward in this tutorial with the median normalization, because it was used in the manuscript. However, there are no downstream differences in how the methods are applied once the data is normalized. 
+We use median normalization in Olivia to reduce package dependencies. However, users can use different normalization method using different packages, for example: estimateSizeFator(DESeq2) or TMM(edgeR).  
+Here we show how each of these is used. There are no downstream differences in how the methods are applied once the data is normalized. 
 
 
 ## Median normalization
@@ -153,7 +153,7 @@ After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining fo
 
 # Perform differential expression analysis
 
-We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values and Storey empirical p-values). In order to generate p-values under the null, we create a ``residual permuted" trait 100 times and perform differential expression analysis, and use the resulting p-values/ z score as our null p-values/ z-score. (see manuscript).
+We show how we perform differential expression analysis on all transcripts using empirical p-value(quantile empirical p-values and Storey empirical p-values, as these are reffered to in the manuscript). In order to generate p-values under the null, we create a ``residual permuted" trait 100 times and perform differential expression analysis, and use the resulting p-values/z-score as our null p-values/z-score. (See manuscript).
 
 ```{r}
 set.seed(12)
@@ -186,7 +186,9 @@ head(storey_emp_multi)
 
 # Perform differential expression analysis using permutation
 
-We show how we perform differential expression analysis on selected transcripts using permutation method. we suggested to run 100000 permutation for single genes.
+When testing only a handful of genes, we may not want to perform transfcriptome-wide association analysis, and therefore empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Therefore, in this case one needs to permute the specific gene many times. 
+
+Here we show how to perform differential expression analysis on selected transcripts when computing a permutation p-value for each gene based on permutations for this gene only. We suggest running 100000 permutations.
 
 
 ```{r}

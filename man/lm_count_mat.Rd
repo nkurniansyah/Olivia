@@ -27,7 +27,7 @@ lm_count_mat(
 \item{log_transform}{One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)}
 }
 \value{
-Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),p_value,fdr_bh ,z_score (transformed by p-value)
+Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value,fdr_bh
 }
 \description{
 Calculated associtation gene counts matrix with the pehonotype where each of gene counts on aexposure
