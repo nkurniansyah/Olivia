@@ -31,7 +31,7 @@ data(phenotype)
 data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 data("ENSG00000000003")
-covariates_string<-"Age,Sex"
+covariates_string<-"Age+Sex"
 trait<-"Trait.1"
 n_permute<- 100
 permuted_trait<- sapply(seq_len(n_permute), function(x){

@@ -38,7 +38,7 @@ data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 data(phenotype)
 trait<-"Trait.1"
-covars<-"Age,Sex"
+covars<-"Age+Sex"
 log_transform<-"log_replace_half_min"
 lm_count_mat(count_matrix=rnaseq_count_matrix,pheno=phenotype,trait=trait,
              covariates_string=covars, log_transform=log_transform)
