@@ -21,7 +21,6 @@ log_transform_count <- function(count_matrix, transform = "log_replace_half_min"
     stop("Requested transformation not allowed.
          Allowed transformation names are log_replace_half_min, log_add_min, log_add_0.5")
   }
-
   if (transform == "log_replace_half_min") {
     return(log_replace_half_min(count_matrix))
   }
