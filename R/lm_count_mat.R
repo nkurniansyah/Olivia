@@ -150,7 +150,7 @@ lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
                                                   null_statistics = as.numeric(null_pval))
   
   deg$emp_pvals <- emp_pvals
-  deg< deg %>%mutate(bh_emp_pvals=p.adjust(emp_pvals, method = "BH"))
+  deg<- deg %>%mutate(bh_emp_pvals=p.adjust(emp_pvals, method = "BH"))
   
   return(deg)
 }
