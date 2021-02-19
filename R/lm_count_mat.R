@@ -99,8 +99,6 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 #'                       covariates_string=covars, outcome_type="continous")
 #' @export
 
-lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,
-                      covariates_string=covars, outcome_type="continous")
                     
 
 lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
