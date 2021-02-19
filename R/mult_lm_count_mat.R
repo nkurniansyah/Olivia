@@ -48,7 +48,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 
 
 
-  model_string <- c(covars, traits)
+  model_string <- c(covariates_string, traits)
   model_string<- paste(model_string, collapse = "+")
 
 
