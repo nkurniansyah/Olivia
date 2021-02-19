@@ -19,7 +19,7 @@ compute_empirical_pvalues(
 
 \item{empirical_type}{Type of empirical pvalue : quantile or storey}
 
-\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and z_score (storey)}
+\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey)}
 
 \item{t_df}{A vector of calculated t-statistic}
 }

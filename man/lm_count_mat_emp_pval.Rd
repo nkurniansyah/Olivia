@@ -45,7 +45,7 @@ lm_count_mat_emp_pval(
 \item{outcome_type}{continous and binary.Default is continous}
 }
 \value{
-Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom) ,p_value, fdr_bh,,
+Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value, fdr_bh,,
         emp_pvals,bh_emp_pvals
 }
 \description{
