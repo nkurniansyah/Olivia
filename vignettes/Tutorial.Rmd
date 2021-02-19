@@ -18,7 +18,7 @@ library(Olivia)
 
 
 # Introduction
-Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies" \url{https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract}. 
+Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies`` \url{https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract}. 
 
 # Installation and require packages
 
@@ -49,7 +49,7 @@ library(dplyr)
 # Load example data
 
 ## Load raw gene counts matrix 
-First we load the transcripts, where were obtained from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151243.  
+First we load the transcripts, where were obtained from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151243. 
 Note: we reformatted the transcripts matrix into desired form and embedded them into Olivia package.
 
 ```{r}
@@ -75,8 +75,9 @@ trait <- "Trait.1"
 We will adjust our analysis to the simulated covariates Age and Sex. The covariates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
 
 ```{r}
-covariates_string <- "Age + as.factor(Sex)"
+covariates_string <- "Age + Sex"
 ```
+
 Note that we can also define the string to be "Age + as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
 
 Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the there are matching IDs.
@@ -118,8 +119,8 @@ After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining fo
 
 # Perform differential expression analysis
 
-We show how we perform differential expression analysis on all transcripts using empirical p-value(quantile empirical p-values).
-In order to generate p-values under the null, we create a ``residual permuted" trait 100 times and perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey emperical p-value, as these are reffered to in the manuscript). ). 
+We show how we perform differential expression analysis on all transcripts using empirical p-value (quantile empirical p-values).
+To generate p-values under the null, we create a ``residual permuted`` trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey empirical p-value using test statistcs, as these are referred to in the manuscript.
 
 
 ```{r}
@@ -141,7 +142,6 @@ head(tophits)
 
 We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) using multiple exposure. 
 
-
 ```{r}
 set.seed(12)
 
@@ -157,8 +157,7 @@ quantile_emp_multi
 
 # Perform differential expression analysis using permutation
 
-When testing only a handful of genes, we may not want to perform transfcriptome-wide association analysis, and therefore empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Therefore, in this case one needs to permute the specific gene many times. 
-
+When testing only a handful of genes, we may not want to perform transcriptome-wide association analysis. Therefore, empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Additionally, we permute specific genes many times. 
 Here we show how to perform differential expression analysis on selected transcripts when computing a permutation p-value for each gene based on permutations for this gene only. We suggest running 100000 permutations.
 
 
