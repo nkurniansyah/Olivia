@@ -162,7 +162,7 @@ lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_st
 
   null_pval<-unlist(permute_val)
 
-  stopifnot(length(null_statistics)==n_permute*nrow(deg))
+  stopifnot(length(null_pval)==n_permute*nrow(deg))
 
   message("Computing quantile empirical p-values")
 
