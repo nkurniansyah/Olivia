@@ -83,29 +83,24 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 #' @param log_transform  One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs A vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute number of computing residual permutation. Default is 100 times
-#' @param stat_type Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey). Default is t_stat
-#' @param empirical_type Type of empirical pvalue : quantile or storey. Default  is storey
-#' @param t_df A vector of calculated t-statistic.Default is NULL
 #' @param seed Random seed
 #' @param outcome_type continous and binary.Default is continous
 #' @return Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value, fdr_bh,,
 #'         emp_pvals,bh_emp_pvals
 #' @examples
 #' set.seed(123)
-#' library(qvalue)
 #' library(dplyr)
 #' data(phenotype)
 #' data(rnaseq_count_matrix)
 #' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 #' trait<-"Trait.1"
 #' covars<- "Age+Sex"
-#' stat<-"t_stat"
-#' empirical_type<-"storey"
 #' lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,
-#'                       covariates_string=covars, stat_type="t_stat",empirical_type="storey", outcome_type="continous")
+#'                       covariates_string=covars, outcome_type="continous")
 #' @export
 
-
+lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,
+                      covariates_string=covars, outcome_type="continous")
                     
 
 lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
@@ -113,9 +108,6 @@ lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
                                  gene_IDs=NULL,
                                  log_transform = "log_replace_half_min",
                                  seed = NULL,
-                                 stat_type="t_stat",
-                                 empirical_type = "storey",
-                                 t_df = NULL,
                                  outcome_type="continous"){
 
   if (!is.null(seed)) set.seed(seed)
@@ -147,23 +139,24 @@ lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
                              covariates_string=covariates_string,
                              gene_IDs=gene_IDs,
                              log_transform = log_transform)
-    null_stat<-deg_perm[,stat_type]
+    null_pval<-deg_perm[,"p_value"]
+    
   })
 
-  null_statistics<-unlist(permute_val)
-  head(null_statistics)
+  null_pval<-unlist(permute_val)
+  head(null_pval)
 
-  stopifnot(length(null_statistics)==n_permute*nrow(deg))
+  stopifnot(length(null_pval)==n_permute*nrow(deg))
 
 
-  message("Computing empirical p-values")
+  message("Computing quantile empirical p-values")
 
-  emp_pvals <- compute_empirical_pvalues(statistics = deg[,stat_type],
-                                         null_statistics = as.numeric(null_statistics),
-                                         stat_type = stat_type,
-                                         empirical_type = empirical_type)
+  emp_pvals <- compute_quantile_empirical_pvalues(statistics = deg[,"p_value"],
+                                                  null_statistics = as.numeric(null_pval))
+  
   deg$emp_pvals <- emp_pvals
-  deg$bh_emp_pvals <- p.adjust(deg$emp_pvals, method = "BH")
+  deg< deg %>%mutate(bh_emp_pvals=p.adjust(emp_pvals, method = "BH"))
+  
   return(deg)
 }
 
