@@ -37,7 +37,6 @@ Olivia require external packages from CRAN (dplyr) and Bioconductor(qvalue)
 
 install.packages("dplyr")
 
-BiocManager::install("qvalue")
 
 ```
 
@@ -45,7 +44,6 @@ Load packages
 
 ```{r,warning=FALSE,message=FALSE}
 library(dplyr)
-library(qvalue)
 ```
 
 # Load example data
@@ -90,8 +88,7 @@ phenotypes <- phenotype[match(IDs_both,rownames(phenotype)),]
 
 # Normalize the RNA-seq dataset
 
-We use median normalization in Olivia to reduce package dependencies. However, users can use different normalization method using different packages, for example: estimateSizeFator(DESeq2) or TMM(edgeR).  
-Here we show how each of these is used. There are no downstream differences in how the methods are applied once the data is normalized. 
+We use median normalization in Olivia to reduce package dependencies. However, users can use different normalization method using different packages, for example: estimateSizeFator(DESeq2) or TMM(edgeR). There are no downstream differences in how the methods are applied once the data is normalized. 
 
 
 ## Median normalization
@@ -100,38 +97,6 @@ Here we show how each of these is used. There are no downstream differences in h
 median_norm<- median_normalization(rnaseq_matrix)
 
 ```
-## estimateSizeFactor
-
-This method implemented in DESeq2.
-
-```{r eval=F, echo=T }
- BiocManager::install("DEseq2")
- library(DESeq2)
-
-  des_matrix <- DESeqDataSetFromMatrix(countData = rnaseq_matrix,
-                                       colData = phenotypes,
-                                       design = ~Age+Sex+Trait.1)
-
-  des_matrix <- estimateSizeFactors(des_matrix)
-
-  SizeFactor_norm <- counts(des_matrix, normalized=TRUE)
-```
-
-## TMM (Trimmed Mean of M-values)
-
-This method implemented in edgeR
-
-```{r eval=F, echo=T }
- BiocManager::install("edgeR")
- library(edgeR)
- counts <- DGEList(rnaseq_matrix)
-
- dgList<- calcNormFactors(counts, method = "TMM")
-
- TMM_norm<- cpm(dgList)
-  
-```
-
 
 # Filtering transcripts
 
@@ -153,16 +118,16 @@ After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining fo
 
 # Perform differential expression analysis
 
-We show how we perform differential expression analysis on all transcripts using empirical p-value(quantile empirical p-values and Storey empirical p-values, as these are reffered to in the manuscript). In order to generate p-values under the null, we create a ``residual permuted" trait 100 times and perform differential expression analysis, and use the resulting p-values/z-score as our null p-values/z-score. (See manuscript).
+We show how we perform differential expression analysis on all transcripts using empirical p-value(quantile empirical p-values).
+In order to generate p-values under the null, we create a ``residual permuted" trait 100 times and perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey emperical p-value, as these are reffered to in the manuscript). ). 
+
 
 ```{r}
 set.seed(12)
 
 quantile_emp<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
-                                  n_permute=100, gene_IDs=NULL,log_transform = "log_replace_half_min",
-                                  stat_type="p_value", empirical_type = "quantile",
-                                  t_df = NULL, outcome_type ="continous")
-head(quantile_emp)
+                                  n_permute=100,log_transform = "log_replace_half_min",
+                                  outcome_type ="continous",gene_IDs=NULL)
 
 
 tophits<-quantile_emp[which(quantile_emp$bh_emp_pvals< 0.05),]
@@ -174,7 +139,7 @@ head(tophits)
 
 # Perform differential expression analysis using multiple exposure
 
-We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values and Storey empirical p-values) using multiple exposure. 
+We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) using multiple exposure. 
 
 
 ```{r}
@@ -182,10 +147,7 @@ set.seed(12)
 
 quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits=c("Trait.1","Trait.2") ,
                                              covariates_string,n_permute=100, gene_IDs=NULL,
-                                             log_transform = "log_replace_half_min",
-                                             stat_type="p_value", empirical_type = "quantile",
-                                             t_df = NULL, outcome_type="continous")
-head(quantile_emp_multi)
+                                             log_transform = "log_replace_half_min", outcome_type="continous")
 
 quantile_emp_multi<-quantile_emp_multi[quantile_emp_multi$bh_emp_pvals< 0.05,]
 
