@@ -22,7 +22,6 @@
 #' @export
 #'
 
-
 lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
                         gene_IDs=NULL, log_transform = "log_replace_half_min"){
 
@@ -42,7 +41,6 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
   #covariates_string<- as.character(covariates_string)
 
   #covars<- unlist(strsplit(covariates_string, ","))
-
 
   model_string <- paste0(covariates_string,"+",trait)
   XX<-model.matrix(as.formula(paste0("~", model_string)), data=pheno)
@@ -99,7 +97,6 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 #'                       covariates_string=covars, outcome_type="continous")
 #' @export
 
-                    
 
 lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
                                  n_permute=100,
