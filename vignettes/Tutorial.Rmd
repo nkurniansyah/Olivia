@@ -12,7 +12,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(rnaseq)
+library(Olivia)
 ```
 
 
@@ -27,7 +27,7 @@ To install, open R and type:
 
 library("devtools")
 install_github("nkurniansyah/Olivia")
-library(NovaSeq)
+library(Olivia)
 
 ```
 
@@ -77,7 +77,7 @@ trait <- "Trait.1"
 We will adjust our analysis to the simulated covariates Age and Sex. The covariates have to correspond to column names in the phenotype data.frame. In the analysis, we will use a string defining the regression model (just the covariates part of it), so we define it here: 
 
 ```{r}
-covariates_string <- "Age + Sex"
+covariates_string <- "Age + as.factor(Sex)"
 ```
 Note that we can also define the string to be "Age + as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
 
@@ -158,11 +158,17 @@ We show how we perform differential expression analysis on all transcripts using
 ```{r}
 set.seed(12)
 
-storey_emp<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
+quantile_emp<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
                                   n_permute=100, gene_IDs=NULL,log_transform = "log_replace_half_min",
-                                  stat_type="z_score", empirical_type = "storey",
-                                  t_df = NULL, family="gaussian")
-head(storey_emp)
+                                  stat_type="p_value", empirical_type = "quantile",
+                                  t_df = NULL, outcome_type ="continous")
+head(quantile_emp)
+
+
+tophits<-quantile_emp[which(quantile_emp$bh_emp_pvals< 0.05),]
+head(tophits)
+
+
 
 ```
 
@@ -174,13 +180,16 @@ We show how we perform differential expression analysis on all transcripts using
 ```{r}
 set.seed(12)
 
-storey_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits="Trait.1,Trait.2", 
+quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits=c("Trait.1","Trait.2") ,
                                              covariates_string,n_permute=100, gene_IDs=NULL,
                                              log_transform = "log_replace_half_min",
-                                             stat_type="z_score", empirical_type = "storey",
-                                             t_df = NULL, family="gaussian")
-head(storey_emp_multi)
+                                             stat_type="p_value", empirical_type = "quantile",
+                                             t_df = NULL, outcome_type="continous")
+head(quantile_emp_multi)
 
+quantile_emp_multi<-quantile_emp_multi[quantile_emp_multi$bh_emp_pvals< 0.05,]
+
+quantile_emp_multi
 
 ```
 
@@ -201,7 +210,7 @@ perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenoty
                                  gene_IDs=gene_names,
                                  log_transform = "log_replace_half_min",
                                  seed = NULL,
-                                 family="gaussian")
+                                 outcome_type ="continous")
 
 perm_res
 
