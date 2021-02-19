@@ -13,9 +13,6 @@ lm_count_mat_emp_pval(
   gene_IDs = NULL,
   log_transform = "log_replace_half_min",
   seed = NULL,
-  stat_type = "t_stat",
-  empirical_type = "storey",
-  t_df = NULL,
   outcome_type = "continous"
 )
 }
@@ -36,12 +33,6 @@ lm_count_mat_emp_pval(
 
 \item{seed}{Random seed}
 
-\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey). Default is t_stat}
-
-\item{empirical_type}{Type of empirical pvalue : quantile or storey. Default  is storey}
-
-\item{t_df}{A vector of calculated t-statistic.Default is NULL}
-
 \item{outcome_type}{continous and binary.Default is continous}
 }
 \value{
@@ -53,15 +44,12 @@ The function is to calculate DEG (Differential Expression Genes) analysis using 
 }
 \examples{
 set.seed(123)
-library(qvalue)
 library(dplyr)
 data(phenotype)
 data(rnaseq_count_matrix)
 rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 trait<-"Trait.1"
 covars<- "Age+Sex"
-stat<-"t_stat"
-empirical_type<-"storey"
 lm_count_mat_emp_pval(count_matrix=rnaseq_count_matrix,pheno = phenotype,trait = trait,
-                      covariates_string=covars, stat_type="t_stat",empirical_type="storey", outcome_type="continous")
+                      covariates_string=covars, outcome_type="continous")
 }

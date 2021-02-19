@@ -11,12 +11,9 @@ lm_mult_count_mat_emp_pval(
   covariates_string,
   n_permute = 100,
   gene_IDs = NULL,
-  log_transform = "log_replace_half_min",
   seed = NULL,
-  stat_type = "chisq_stat",
-  empirical_type = "storey",
-  outcome_type = "continous",
-  t_df = NULL
+  log_transform = "log_replace_half_min",
+  outcome_type = "continous"
 )
 }
 \arguments{
@@ -32,17 +29,11 @@ lm_mult_count_mat_emp_pval(
 
 \item{gene_IDs}{: vector of selection of geneID, NULL if all genes are tested}
 
-\item{log_transform}{One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)}
-
 \item{seed}{Random seed}
 
-\item{stat_type}{Statistic type : p_value (quantile empirical pvalue), t_stat and chisq_stat (storey). Default is z_score}
-
-\item{empirical_type}{Type of empirical pvalue : quantile or storey. Default  is storey}
+\item{log_transform}{One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)}
 
 \item{outcome_type}{continous and binary.Default is continous}
-
-\item{t_df}{A vector of calculated t-statistic.Default is NULL}
 }
 \value{
 Linear regression results as a data frame with columns geneID, beta.Trait1,beta.Trait1 ,se,
@@ -53,7 +44,6 @@ The function is to calculate DEG (Differential Expression Genes) analysis for mu
 }
 \examples{
 set.seed(123)
-library(qvalue)
 library(dplyr)
 data(phenotype)
 data(rnaseq_count_matrix)
@@ -61,5 +51,5 @@ rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 traits<-c("Trait.1","Trait.2")
 covars<- "Age+Sex"
 lm_mult_count_mat_emp_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype, traits=traits, covariates_string=covars,
-                        stat_type="chisq_stat", empirical_type = "storey",outcome_type="continous")
+                        outcome_type="continous")
 }
