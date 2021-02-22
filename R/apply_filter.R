@@ -40,7 +40,7 @@ apply_filters <- function(count_matrix, median_min = 1, expression_sum_min = 10,
   }
 
 
-  ############ Compute characteristics of the normalized count matrix
+  ############ Compute characteristics of the normalized count matrix ##############
 
   message("Computing transtripts characteristics...")
   median_vals <- apply(count_matrix, 1, median)
