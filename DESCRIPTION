@@ -10,9 +10,6 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports:
-    DESeq2,
-    edgeR,
-    qvalue,
     dplyr
 RoxygenNote: 7.1.1
 Suggests: 
