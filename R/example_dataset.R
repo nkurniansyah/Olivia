@@ -8,7 +8,6 @@
 #'   \item{Sex}{covariate,0 is female and 1 is male, binary}
 #'   \item{Trait.1}{outcome/ trait , numeric}
 #'   \item{Trait.2}{outcome/ trait , numeric}
-
 #'   ...
 #' }
 
