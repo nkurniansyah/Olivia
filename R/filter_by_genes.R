@@ -28,5 +28,4 @@ filter_by_genes <- function(count_matrix, gene_IDs){
 
   count_matrix<-count_matrix[rownames(count_matrix) %in% gene_IDs, , drop = FALSE]
   return(count_matrix)
-
 }
