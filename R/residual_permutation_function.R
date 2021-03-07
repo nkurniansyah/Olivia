@@ -5,19 +5,19 @@
 #' @param trait A continuous/binary variable to permute while preserving association with covariates
 #' @param covariates_string Covariates to adjust for, as a string used in regression model
 #' @param seed  Random seed
-#' @param outcome_type continous and binary, default is continous
+#' @param outcome_type continuous and binary, default is continuous
 #' @return Vector of trait values after residual permuted
 #' @examples
 #' data(phenotype)
 #' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait(pheno=phenotype, trait=trait,
 #'                      covariates_string=covars, 
-#'                      seed = NULL, outcome_type="continous")
+#'                      seed = NULL, outcome_type="continuous")
 #' @export
 
 
 
-permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, outcome_type="continous"){
+permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, outcome_type="continuous"){
 
   if (!is.null(seed)) set.seed(seed)
   
@@ -26,14 +26,14 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, o
 
   stopifnot(trait %in% colnames(pheno))
 
-  if (!is.element(outcome_type, c("continous", "binary"))){
+  if (!is.element(outcome_type, c("continuous", "binary"))){
     stop(paste("Requested family type is", outcome_type,
-               "allowed values are continous and binary", "\n"))
+               "allowed values are continuous and binary", "\n"))
   }
 
   
 
-  if(outcome_type=="continous"){
+  if(outcome_type=="continuous"){
     fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 
   }else if(outcome_type=="binary"){
@@ -61,7 +61,7 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, o
 #' @param gene_exp Selected gene/transcript to simulate as associated with the trait
 #' @param required_cor Corelations value simulating the strength of association between trait and gene_exp
 #' @param seed Random seed
-#' @param outcome_type continous and binary
+#' @param outcome_type continuous and binary
 #' @return A vector permuted trait that is associated with gene_exp
 #' @examples
 #' data(phenotype)
@@ -69,7 +69,7 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, o
 #' trait<-"Trait.1"; covars="Age+Sex"
 #' permute_resids_trait_cor(pheno= phenotype,trait=trait,
 #'                          covariates_string=covars, required_cor=0.3,
-#'                          gene_exp=ENSG00000000003,seed=NULL, outcome_type="continous")
+#'                          gene_exp=ENSG00000000003,seed=NULL, outcome_type="continuous")
 #' @export
 
 
@@ -80,7 +80,7 @@ permute_resids_trait_cor <- function(pheno,
                                      gene_exp,
                                      required_cor,
                                      seed = NULL,
-                                     outcome_type="continous"){
+                                     outcome_type="continuous"){
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -91,12 +91,12 @@ permute_resids_trait_cor <- function(pheno,
 
   stopifnot(trait %in% colnames(pheno))
 
-  if (!is.element(outcome_type, c("continous", "binary"))){
+  if (!is.element(outcome_type, c("continuous", "binary"))){
     stop(paste("Requested family type is", outcome_type,
-               "allowed values are continous and binary", "\n"))
+               "allowed values are continuous and binary", "\n"))
   }
 
-  if(outcome_type=="continous"){
+  if(outcome_type=="continuous"){
 
     fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 

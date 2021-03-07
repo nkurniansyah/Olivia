@@ -84,7 +84,7 @@ lm_count_mat_permute<-function(residual_permutation, covariates_string, pheno, s
 #' @param gene_IDs A vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute Number of permutation. Default is 100000 times
 #' @param seed Random seed
-#' @param outcome_type continous and binary. Default is continous
+#' @param outcome_type continuous and binary. Default is continuous
 #' @return Linear regression results as a data frame with columns GeneID, beta,se,t_stat (t-statistic), t_stat_df(degree of freedom),p_value, perm_pval
 #' @examples
 #' library(dplyr)
@@ -109,7 +109,7 @@ lm_count_mat_perm_pval <-function(count_matrix, pheno, trait, covariates_string,
                                  gene_IDs=NULL,
                                  log_transform = "log_replace_half_min",
                                  seed = NULL,
-                                 outcome_type="continous"){
+                                 outcome_type="continuous"){
 
   if(is.null(gene_IDs)) message("No list gene ID/s are found. It will run permutations for all the genes and it will take long times")
 
