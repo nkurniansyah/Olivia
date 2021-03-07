@@ -128,7 +128,7 @@ set.seed(12)
 
 quantile_emp<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
                                   n_permute=100,log_transform = "log_replace_half_min",
-                                  outcome_type ="continous",gene_IDs=NULL)
+                                  outcome_type ="continuous",gene_IDs=NULL)
 
 
 tophits<-quantile_emp[which(quantile_emp$bh_emp_pvals< 0.05),]
@@ -147,7 +147,7 @@ set.seed(12)
 
 quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits=c("Trait.1","Trait.2") ,
                                              covariates_string,n_permute=100, gene_IDs=NULL,
-                                             log_transform = "log_replace_half_min", outcome_type="continous")
+                                             log_transform = "log_replace_half_min", outcome_type="continuous")
 
 quantile_emp_multi<-quantile_emp_multi[quantile_emp_multi$bh_emp_pvals< 0.05,]
 
@@ -171,7 +171,7 @@ perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenoty
                                  gene_IDs=gene_names,
                                  log_transform = "log_replace_half_min",
                                  seed = NULL,
-                                 outcome_type ="continous")
+                                 outcome_type ="continuous")
 
 perm_res
 

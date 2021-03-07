@@ -95,7 +95,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 #' @param gene_IDs : vector of selection of geneID, NULL if all genes are tested
 #' @param n_permute number of computing residual permutation. Default is 100 times
 #' @param seed Random seed
-#' @param outcome_type continous and binary.Default is continous
+#' @param outcome_type continuous and binary.Default is continuous
 #' @return Linear regression results as a data frame with columns geneID, beta.Trait1,beta.Trait1 ,se,
 #'        chisq_stat,chisq_stat_df(degree of freedom),p_value(join p-value),emp_pvals,bh_emp_pvals
 #'
@@ -108,14 +108,14 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 #' traits<-c("Trait.1","Trait.2")
 #' covars<- "Age+Sex"
 #' lm_mult_count_mat_emp_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype, traits=traits, covariates_string=covars,
-#'                         outcome_type="continous")
+#'                         outcome_type="continuous")
 #' @export
 #'
 
 
 lm_mult_count_mat_emp_pval <-function(count_matrix, pheno, traits, covariates_string,
                                       n_permute=100, gene_IDs=NULL,seed = NULL,
-                                      log_transform = "log_replace_half_min",outcome_type="continous"){
+                                      log_transform = "log_replace_half_min",outcome_type="continuous"){
 
   if (!is.null(seed)) set.seed(seed)
 
