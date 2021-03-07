@@ -6,6 +6,7 @@
 #' \describe{
 #'   \item{Age}{covariate, must be integer}
 #'   \item{Sex}{covariate,0 is female and 1 is male, binary}
+#'   \item{Race}{covariate,race must be categorical}
 #'   \item{Trait.1}{outcome/ trait , numeric}
 #'   \item{Trait.2}{outcome/ trait , numeric}
 #'   ...
