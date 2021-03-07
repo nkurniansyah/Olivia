@@ -14,9 +14,6 @@
 "phenotype"
 
 
-
-
-
 #' Raw gene count matrix
 #'
 #' Example of bulk RNA-seq
