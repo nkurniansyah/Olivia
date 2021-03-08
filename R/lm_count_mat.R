@@ -8,7 +8,7 @@
 #' @param covariates_string Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"
 #' @param log_transform  One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs Vector of selection of geneID, NULL if all genes are tested
-#' @return Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value,fdr_bh 
+#' @return Linear regression results as a data frame with columns geneID, adjLogFC,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value,fdr_bh 
 #' @examples
 #' library(dplyr)
 #' data(rnaseq_count_matrix)
@@ -60,7 +60,7 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
   test_stats <- betas/se_betas
   t_stat_df <- nrow(count_matrix) - numExplan
   t_pval <- 2*pt(abs(test_stats), lower.tail=FALSE, df = t_stat_df)
-  res <- data.frame(geneID = colnames(count_matrix), beta = betas, se = se_betas, 
+  res <- data.frame(geneID = colnames(count_matrix), adjLogFC = betas, se = se_betas, 
                     t_stat = test_stats,t_stat_df=t_stat_df, p_value = t_pval)
 
   rownames(res)<-NULL
@@ -83,7 +83,7 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 #' @param n_permute number of computing residual permutation. Default is 100 times
 #' @param seed Random seed
 #' @param outcome_type continuous and binary.Default is continuous
-#' @return Linear regression results as a data frame with columns geneID, beta,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value, fdr_bh,,
+#' @return Linear regression results as a data frame with columns geneID, adjLogFC,se,t_stat (t-statistic),t_stat_df(degree of freedom),p_value, fdr_bh,,
 #'         emp_pvals,bh_emp_pvals
 #' @examples
 #' set.seed(123)
