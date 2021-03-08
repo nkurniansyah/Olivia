@@ -8,7 +8,7 @@
 #' @param covariates_string A character string with specifying the covariates, include "as.factor" statements. example: covariates_string = "age + as.factor(sex)"
 #' @param log_transform One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
 #' @param gene_IDs A vector of selection of gene IDs, NULL if all genes are tested
-#' @return Linear regression results as a data frame with columns geneID, beta.Trait.1,beta.Trait.1 ,se,chisq_stat,chisq_stat_df,p_value(join p-value),fdr_bh
+#' @return Linear regression results as a data frame with columns geneID, adjLogFC.Trait.1,adjLogFC.Trait.2 ,se,chisq_stat,chisq_stat_df,p_value(join p-value),fdr_bh
 #' @examples
 #' set.seed(123)
 #' library(dplyr)
@@ -64,7 +64,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
   # effect sizes: each column correspond to a different transcript
   betas <- betas_mat[traits,]
   betas_val<- t(betas)
-  colnames(betas_val)<- c(paste0("beta_",traits))
+  colnames(betas_val)<- c(paste0("adjLogFC_",traits))
 
   resid_Ys <-count_matrix - XX %*% XXproj %*% count_matrix
   sum_squares_resids <- colSums(resid_Ys^2)
