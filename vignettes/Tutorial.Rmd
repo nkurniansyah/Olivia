@@ -76,7 +76,8 @@ We create table of the summary of the phenotype.
 
 ```{r}
 summary_phen<- summary_phenotype(pheno = phenotype,categorical_variable = c("Sex"),
-                                 numeric_variable = c("Age","Trait.1","Trait.2"),strata = "Race")
+                                 numeric_variable = c("Age","Trait.1","Trait.2"),
+                                 strata = "Race")
 summary_phen
 
 ```
@@ -114,7 +115,8 @@ After defining the trait of interest and covariates to adjust to the model, we n
 
 ```{r}
 
-resid_plot<- residual_plot(pheno = phenotype,covariates_string = covariates_string,traits = trait)
+resid_plot<- residual_plot(pheno = phenotype, traits = trait,
+                           covariates_string = covariates_string)
 
 resid_plot
 
@@ -160,8 +162,10 @@ After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining fo
 
 
 par(mfrow=c(1,2))
-plot(density(log_replace_half_min(median_norm)[,"12N_S27_L006_R1_001"]), main="Before filtering", xlab="log trascript")
-plot(density(log_replace_half_min(clean_count_matrix)[,"12N_S27_L006_R1_001"]), main="After filtering", xlab="log trascript")
+plot(density(log_replace_half_min(median_norm)[,"12N_S27_L006_R1_001"]),
+     main="Before filtering", xlab="log trascript")
+plot(density(log_replace_half_min(clean_count_matrix)[,"12N_S27_L006_R1_001"]), 
+     main="After filtering", xlab="log trascript")
 
 
 ```
@@ -174,12 +178,16 @@ The figure below shows the distribution of genes or transcripts in the sample in
 log_counts<- log_replace_half_min(clean_count_matrix)
 log_counts<-melt(log_counts)
 
-box_plot<- ggplot(log_counts, aes(x = Var2, y = value)) + stat_boxplot(aes(Var2, value), 
+box_plot<- ggplot(log_counts, aes(x = Var2, y = value)) + 
+                  stat_boxplot(aes(Var2, value), 
                   geom='errorbar', linetype=1, width=0.5)+ xlab("Sample")+ 
-                  ylab("log(Transcripts)")+ geom_boxplot( aes(Var2, value),outlier.shape=1)+
-                  stat_summary(fun = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
-                  width = .75, linetype = "dotted") + theme_bw()+
-                  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+                  ylab("log(Transcripts)")+ 
+                  geom_boxplot( aes(Var2, value),outlier.shape=1)+
+                  stat_summary(fun = mean, geom = "errorbar", 
+                                aes(ymax = ..y.., ymin = ..y..),
+                                width = .75, linetype = "dotted") +
+                 theme_bw()+
+                 theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   
 box_plot
 
@@ -194,8 +202,9 @@ We show how we perform differential expression analysis (Transcriptome-wide asso
 ```{r}
 set.seed(12)
 
-quantile_emp_trascript<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
-                                              n_permute=100,log_transform = "log_replace_half_min",
+quantile_emp_trascript<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait,
+                                              covariates_string,n_permute=100,
+                                              log_transform = "log_replace_half_min",
                                               outcome_type ="continuous",gene_IDs=NULL)
 
 
@@ -210,12 +219,16 @@ We do not implement the annotation feature into the Olvia package. We will demon
 
 add_annotation<-function(deg_res){
   
-   gene_symbol<- select(EnsDb.Hsapiens.v86, keys =as.character(deg_res$geneID) , keytype = "GENEID",
-                           columns = c("GENEID", "GENENAME"))
+   gene_symbol<- select(EnsDb.Hsapiens.v86, 
+                        keys =as.character(deg_res$geneID) ,
+                        keytype = "GENEID",
+                        columns = c("GENEID", "GENENAME"))
+   
    colnames(gene_symbol)<- c("geneID","geneName")
    
    annot_deg<-left_join(deg_res,gene_symbol, by="geneID")
-   annot_deg<- annot_deg %>% dplyr::rename(IDs=geneID,geneID= geneName)
+   annot_deg<- annot_deg %>% dplyr::rename(IDs=geneID,
+                                           geneID= geneName)
    return(annot_deg)
    
 }
@@ -253,7 +266,9 @@ Looking at the results, we may want to see how the most significant or desired g
 ```{r}
 
 top_gene<- "ENSG00000000005" 
-violin_plot(pheno = phenotypes,strata = "Race",norm_count_matrix  = clean_count_matrix,selected_transcript = top_gene)
+violin_plot(pheno = phenotypes,strata = "Race",
+            norm_count_matrix  = clean_count_matrix,
+            selected_transcript = top_gene)
 ```
 
 # Perform Association analysis for selected gene/s
@@ -268,11 +283,10 @@ set.seed(12)
 
 gene_names<-sample(rownames(clean_count_matrix),5)
 
-perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenotypes, trait, covariates_string,
-                                 n_permute=100000,
-                                 gene_IDs=gene_names,
+perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenotypes,
+                                trait, covariates_string,n_permute=100000,
+                                 gene_IDs=gene_names,seed = NULL,
                                  log_transform = "log_replace_half_min",
-                                 seed = NULL,
                                  outcome_type ="continuous")
 
 perm_res<-add_annotation(perm_res)
@@ -290,9 +304,12 @@ We show how we perform differential expression analysis on all transcripts using
 ```{r}
 set.seed(12)
 
-quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits=c("Trait.1","Trait.2") ,
-                                               covariates_string,n_permute=100, gene_IDs=NULL,
-                                               log_transform = "log_replace_half_min", outcome_type="continuous")
+quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, 
+                                               traits=c("Trait.1","Trait.2") ,
+                                               covariates_string,n_permute=100,
+                                               gene_IDs=NULL,
+                                               log_transform = "log_replace_half_min", 
+                                               outcome_type="continuous")
 
 
 quantile_emp_multi<-add_annotation(quantile_emp_multi)
