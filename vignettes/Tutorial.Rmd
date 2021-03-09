@@ -34,9 +34,7 @@ library(Olivia)
 Olivia require external packages from CRAN (dplyr) and Bioconductor(qvalue)
 
 ```{r eval=F, echo=T }
-
 install.packages("dplyr")
-
 
 ```
 
@@ -44,6 +42,12 @@ Load packages
 
 ```{r,warning=FALSE,message=FALSE}
 library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(tableone)
+library(ggrepel)
+library(EnsDb.Hsapiens.v86)
+
 ```
 
 # Load example data
@@ -66,6 +70,18 @@ data(phenotype)
 head(phenotype)
 ```
 
+## Summary phenotypes
+
+We create table of the summary of the phenotype.
+
+```{r}
+summary_phen<- summary_phenotype(pheno = phenotype,categorical_variable = c("Sex"),
+                                 numeric_variable = c("Age","Trait.1","Trait.2"),strata = "Race")
+summary_phen
+
+```
+
+
 We define the trait of interest to study as an exposure associated with genes. The trait/phenotype has to correspond to a column name in the phenotype data.frame.
 
 ```{r}
@@ -80,24 +96,45 @@ covariates_string <- "Age + Sex"
 
 Note that we can also define the string to be "Age + as.factor(Sex)", or use interaction terms, like one would use in regression functions in R. 
 
+
 Match the (simulated) individuals between the phenotype and the RNA-seq count matrix. Make sure the there are matching IDs.
 ```{r}
 IDs_both <- intersect(rownames(phenotype), colnames(rnaseq_count_matrix))
 rnaseq_matrix <- rnaseq_count_matrix[, IDs_both] 
 phenotypes <- phenotype[match(IDs_both,rownames(phenotype)),]
+
+
 ```
+
+
+
+## Residual plot of the trait
+
+After defining the trait of interest and covariates to adjust to the model, we now need to see how the trait's residual distribution.
+
+```{r}
+
+resid_plot<- residual_plot(pheno = phenotype,covariates_string = covariates_string,traits = trait)
+
+resid_plot
+
+```
+
 
 # Normalize the RNA-seq dataset
 
 We use median normalization in Olivia to reduce package dependencies. However, users can use different normalization method using different packages, for example: estimateSizeFator(DESeq2) or TMM(edgeR). There are no downstream differences in how the methods are applied once the data is normalized. 
 
 
+
 ## Median normalization
 
 ```{r}
+
 median_norm<- median_normalization(rnaseq_matrix)
 
 ```
+
 
 # Filtering transcripts
 
@@ -105,57 +142,122 @@ Remove lowly express gene counts
 
 ```{r}
 clean_count_matrix <- apply_filters(count_matrix = median_norm, 
-                                   median_min = 1, 
-                                   expression_sum_min = 10, 
-                                   max_min = 10, 
-                                   range_min = 5, 
-                                   prop_zero_max = 0.5)
+                                    median_min = 1, 
+                                    expression_sum_min = 10, 
+                                    max_min = 10, 
+                                    range_min = 5, 
+                                    prop_zero_max = 0.5)
+
+
+
 ```
 
 
-After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining for differential expression analysis. 
+After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining for differential expression analysis. s. The plot below illustrates the proportion of transcripts/genes in the “12N_S27_L006_R1_001” sample (selected randomly) before and after filtering.
 
 
+```{r warning=FALSE}
 
-# Perform differential expression analysis
 
-We show how we perform differential expression analysis on all transcripts using empirical p-value (quantile empirical p-values).
-To generate p-values under the null, we create a ``residual permuted`` trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey empirical p-value using test statistcs, as these are referred to in the manuscript.
+par(mfrow=c(1,2))
+plot(density(log_replace_half_min(median_norm)[,"12N_S27_L006_R1_001"]), main="Before filtering", xlab="log trascript")
+plot(density(log_replace_half_min(clean_count_matrix)[,"12N_S27_L006_R1_001"]), main="After filtering", xlab="log trascript")
+
+
+```
+
+
+The figure below shows the distribution of genes or transcripts in the sample in a boxplot after filtering.
+
+```{r}
+
+log_counts<- log_replace_half_min(clean_count_matrix)
+log_counts<-melt(log_counts)
+
+box_plot<- ggplot(log_counts, aes(x = Var2, y = value)) + stat_boxplot(aes(Var2, value), 
+                  geom='errorbar', linetype=1, width=0.5)+ xlab("Sample")+ 
+                  ylab("log(Transcripts)")+ geom_boxplot( aes(Var2, value),outlier.shape=1)+
+                  stat_summary(fun = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                  width = .75, linetype = "dotted") + theme_bw()+
+                  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  
+box_plot
+
+
+```
+
+# Perform Transcriptome-wide association study
+
+We show how we perform differential expression analysis (Transcriptome-wide association study) on all transcripts using empirical p-value (quantile empirical p-values). To generate p-values under the null, we create a ``residual permuted`` trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey empirical p-value using test statistics, as these are referred to in the manuscript.
 
 
 ```{r}
 set.seed(12)
 
-quantile_emp<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
-                                  n_permute=100,log_transform = "log_replace_half_min",
-                                  outcome_type ="continuous",gene_IDs=NULL)
+quantile_emp_trascript<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait, covariates_string,
+                                              n_permute=100,log_transform = "log_replace_half_min",
+                                              outcome_type ="continuous",gene_IDs=NULL)
 
 
-tophits<-quantile_emp[which(quantile_emp$bh_emp_pvals< 0.05),]
+```
+
+## Add annotation
+
+We do not implement the annotation feature into the Olvia package. We will demonstrate how to create a function to add an annotation in a Transcriptome-wide association study. We will use  [EnsDb.Hsapiens.v86](http://bioconductor.org/packages/release/data/annotation/html/EnsDb.Hsapiens.v86.html)
+
+
+```{r}
+
+add_annotation<-function(deg_res){
+  
+   gene_symbol<- select(EnsDb.Hsapiens.v86, keys =as.character(deg_res$geneID) , keytype = "GENEID",
+                           columns = c("GENEID", "GENENAME"))
+   colnames(gene_symbol)<- c("geneID","geneName")
+   
+   annot_deg<-left_join(deg_res,gene_symbol, by="geneID")
+   annot_deg<- annot_deg %>% dplyr::rename(IDs=geneID,geneID= geneName)
+   return(annot_deg)
+   
+}
+
+
+```
+
+
+```{r}
+quantile_emp_trascript<- add_annotation(quantile_emp_trascript)
+head(quantile_emp_trascript)
+```
+
+
+Now, we can obtain significant genes (the genes which have bh_emp_pvals < 0.05)
+
+```{r}
+tophits<-quantile_emp_trascript[which(quantile_emp_trascript$bh_emp_pvals< 0.05),]
 head(tophits)
-
-
-
 ```
+## Visualize up-regulated and down-regulated
+After completing the Transcriptome-wide association study, now we can visualize up-regulated and down-regulated genes using a volcano plot.
 
-# Perform differential expression analysis using multiple exposure
-
-We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) using multiple exposure. 
 
 ```{r}
-set.seed(12)
+volcano<- volcano_plot(deg_res =quantile_emp_trascript,significant_threshold = 0.05 )
 
-quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits=c("Trait.1","Trait.2") ,
-                                             covariates_string,n_permute=100, gene_IDs=NULL,
-                                             log_transform = "log_replace_half_min", outcome_type="continuous")
-
-quantile_emp_multi<-quantile_emp_multi[quantile_emp_multi$bh_emp_pvals< 0.05,]
-
-quantile_emp_multi
-
+volcano
 ```
 
-# Perform differential expression analysis using permutation
+## Violin plot
+Looking at the results, we may want to see how the most significant or desired gene spread across the populations. We will visualize this using violin plots. Top gene has to match with row names in count matrix.
+
+
+```{r}
+
+top_gene<- "ENSG00000000005" 
+violin_plot(pheno = phenotypes,strata = "Race",norm_count_matrix  = clean_count_matrix,selected_transcript = top_gene)
+```
+
+# Perform Association analysis for selected gene/s
+
 
 When testing only a handful of genes, we may not want to perform transcriptome-wide association analysis. Therefore, empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Additionally, we permute specific genes many times. 
 Here we show how to perform differential expression analysis on selected transcripts when computing a permutation p-value for each gene based on permutations for this gene only. We suggest running 100000 permutations.
@@ -173,9 +275,40 @@ perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenoty
                                  seed = NULL,
                                  outcome_type ="continuous")
 
-perm_res
+perm_res<-add_annotation(perm_res)
+
+head(perm_res)
 
 ```
+
+
+# Perform Transcriptome-wide association study  for multiple exposure
+
+
+We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) using multiple exposure. 
+
+```{r}
+set.seed(12)
+
+quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, traits=c("Trait.1","Trait.2") ,
+                                               covariates_string,n_permute=100, gene_IDs=NULL,
+                                               log_transform = "log_replace_half_min", outcome_type="continuous")
+
+
+quantile_emp_multi<-add_annotation(quantile_emp_multi)
+head(quantile_emp_multi)
+```
+
+
+Now, we can obtain significant genes for Transcriptome-wide asssociations for multiple exposure (the genes which have bh_emp_pvals < 0.05)
+
+```{r}
+top_emp_multi<-quantile_emp_multi[quantile_emp_multi$bh_emp_pvals< 0.05,]
+rownames(top_emp_multi)<-NULL
+
+head(top_emp_multi)
+```
+
 
 
 
