@@ -1,7 +1,5 @@
-### residual plot
 
-
-#' Title
+#' Title Residual plot
 #'
 #' @param traits Trait/s, the name of the exposure variable. The trait/s should be a column in pheno.
 #' @param pheno A data frame of phenotype, includes the trait and covariates
@@ -12,7 +10,7 @@
 #' library(ggplot2)
 #' library(reshape2)
 #' data(phenotype)
-#' covariates_string<-"Age+Sex"
+#' covariates_string<-"Age+Sex+Race"
 #' traits<-c("Trait.1","Trait.2")
 #' residual_plot(pheno=phenotype, covariates_string = covariates_string,traits=traits)
 #' @export
@@ -50,32 +48,21 @@ residual_plot<- function(pheno, covariates_string, traits){
 }
 
 
-
-
-
-
-
-#' Title
+#' Title Summary phenotype
 #'
 #' @param pheno  A data frame of phenotype, includes the trait and covariates
 #' @param categorical_variable  all selected categorical variable in model example: c("Sex", "Race")
 #' @param numeric_variable all selected numeric variable in model example: c("Age", "Trait.1", "Trait.2")
-#' @strata strata Variable to stratified example: "Race"
+#' @param strata Variable to stratified example: "Race"
 #' @return sumary phenotype 
 #' @export
-#'
 #' @examples
 #' library(tableone)
 #' data(phenotype)
-#' races<- c("Asian","White","Black")
-#' phenotype$Race<-sample(races, nrow(pheno), replace = T)
-
 #' categorical_variable<-c("Sex","Race")
 #' numeric_variable<-c("Age","Trait.1","Trait.2")
-
-summary_phenotype(pheno=phenotype, categorical_variable =categorical_variable,  numeric_variable=numeric_variable, strata="Race")
-
-#' 
+#' strata<-"Race"
+#' summary_phenotype(pheno=phenotype, categorical_variable =categorical_variable,  numeric_variable=numeric_variable, strata=strata)
 
 summary_phenotype<- function(pheno, categorical_variable, numeric_variable, strata){
   
@@ -88,8 +75,126 @@ summary_phenotype<- function(pheno, categorical_variable, numeric_variable, stra
   
   message(paste(c("Generate summary phnotype using",all_variable ),collapse = " "))
   
-  tableOne <- CreateTableOne(vars =all_variable ,data = pheno, factorVars = categorical_variable, test=F,strata =strata )
+  tableOne <- CreateTableOne(vars =all_variable,strata =strata ,data = pheno, factorVars = categorical_variable, test=F, )
+
+  return(tableOne)
   
-  return(print(tableOne))
+}
+
+
+
+## violin plot
+
+
+#' Title Violin plot
+#'
+#' @param pheno A data frame of phenotype, includes the trait and covariates
+#' @param strata  Variable to stratified example: "Race"
+#' @param norm_count_matrix A matrix of gene counts (possibly normalize transformed). rows are genes, columns are individuals
+#' @param selected_transcript transcript selection example: "ENSG00000002549"
+#' @param log_transform  One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)
+#'
+#' @return violin plot 
+#' @export
+#'
+#' @examples
+#' strata<-"Race"
+#' data(phenotype)
+#' data(rnaseq_count_matrix)
+#' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
+#' selected_transcript<- "ENSG00000002549"
+#' strata<-"Race"
+#' violin_plot(pheno=phenotype, strata=strata, norm_count_matrix=rnaseq_count_matrix, selected_transcript=selected_transcript )
+
+
+violin_plot<- function(pheno, strata, norm_count_matrix, selected_transcript){
   
+  stopifnot(is.element(strata, colnames(pheno)))
+  
+  stopifnot(selected_transcript %in% rownames(norm_count_matrix) )
+  
+  transcript_exp<- norm_count_matrix[which(rownames(norm_count_matrix)==selected_transcript),]
+  transcript_exp_df<- data.frame(transcript_exp, stringsAsFactors = F)
+  head(transcript_exp_df)
+  colnames(transcript_exp_df)<- selected_transcript
+  
+  transcript_exp_df$ID<-rownames(transcript_exp_df)
+  
+  phenotype$ID<- rownames(phenotype)
+  
+  pheno_exp<- left_join(phenotype,transcript_exp_df, by="ID" )
+  
+  
+  message(paste0("Generate violin plot for ",selected_transcript," and stratified by ",strata ))
+  
+  
+
+  
+  violin<- ggplot(pheno_exp, aes_string(x = strata, y =selected_transcript ,group = strata, fill = strata)) + # I prefer to store all the aes() in the first ggplot() layer so that the remaining layers can just be about customising the plot
+           geom_violin(trim = FALSE,alpha = 0.5, draw_quantiles=c(0.5),position = position_dodge(1)) +
+           geom_boxplot(width = 0.1,position = position_dodge(1)) +
+          theme_bw()+ theme(legend.position = "none")
+  
+  
+  return(violin)
+  
+}
+
+
+
+#' Title Volcano plot
+#'
+#' @param deg_res A data frame of results differential of expression genes
+#' @param significant_threshold  threshold for significant genes based on empirical-padj bh, example: 0.1
+#' @return volcano plot 
+#' 
+#' @export 
+#'
+#' @examples
+#' library(ggrepel)
+#' library(dplyr)
+#' data(rnaseq_count_matrix)
+#' rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
+#' data(phenotype)
+#' trait<-"Trait.1"
+#' covars<-"Age+Sex"
+#' 
+#' median_norm<- median_normalization(rnaseq_count_matrix)
+#' clean_count_matrix <- apply_filters(count_matrix = median_norm, median_min = 1, expression_sum_min = 10, 
+#'                                    max_min = 10, range_min = 5, prop_zero_max = 0.5)
+#' deg_res<-lm_count_mat_emp_pval(count_matrix=clean_count_matrix, pheno=phenotype, trait=trait, covariates_string=covars, 
+#'                              n_permute=100, log_transform = "log_replace_half_min",
+#'                              seed = NULL,outcome_type="continuous")
+#' volcano_plot(deg_res=deg_res,significant_threshold=0.1 )
+
+
+
+volcano_plot<- function(deg_res, significant_threshold){
+  
+  
+  deg_res$expression = ifelse(deg_res$bh_emp_pvals < significant_threshold & abs(deg_res$adjLogFC) >= 0, 
+                              ifelse(deg_res$adjLogFC> 0 ,"Up-regulated",'Down-regulated'),"Stable")
+  
+
+  sig_line<- max(deg_res$emp_pvals[which(deg_res$bh_emp_pvals < significant_threshold)])
+  
+  message("Generate volcano plot..")
+  
+  deg_res$sig<- ifelse(deg_res$bh_emp_pvals<significant_threshold, "annotate", NA) #Will have different colors depending on significance
+  deg_res<- deg_res %>% dplyr::arrange(emp_pvals)
+  
+  volcano <- ggplot(data = deg_res,  aes(x = adjLogFC, y = -log10(emp_pvals),colour=expression)) +
+             geom_point(alpha=0.4, size=3.5) +
+             scale_color_manual(labels = c("Down-regulated", "Stable","Up-regulated"), values=c("blue", "grey","red"))+
+             geom_hline(yintercept=-log10(sig_line),lty=4,col="black",lwd=0.8) +
+             labs(x="log2(folds change per 1 unit increase in exposure)",
+             y="-log10(empirical p-value)", 
+             title="Differential expression")  + theme_bw()+ 
+             theme(plot.title = element_text(hjust = 0.5), 
+                   legend.position="none", 
+                   legend.title = element_blank())+
+            geom_label_repel(data=deg_res[!is.na(deg_res$sig),][1:5,], aes(label=as.factor(geneID)), alpha=0.7, size=2.8, force=1.3)
+    
+  
+  return(volcano)
 }
