@@ -13,7 +13,7 @@ lm_count_mat_perm_pval(
   gene_IDs = NULL,
   log_transform = "log_replace_half_min",
   seed = NULL,
-  outcome_type = "continous"
+  outcome_type = "continuous"
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ lm_count_mat_perm_pval(
 
 \item{seed}{Random seed}
 
-\item{outcome_type}{continous and binary. Default is continous}
+\item{outcome_type}{continuous and binary. Default is continuous}
 }
 \value{
 Linear regression results as a data frame with columns GeneID, beta,se,t_stat (t-statistic), t_stat_df(degree of freedom),p_value, perm_pval

@@ -9,7 +9,7 @@ permute_resids_trait(
   trait,
   covariates_string,
   seed = NULL,
-  outcome_type = "continous"
+  outcome_type = "continuous"
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ permute_resids_trait(
 
 \item{seed}{Random seed}
 
-\item{outcome_type}{continous and binary, default is continous}
+\item{outcome_type}{continuous and binary, default is continuous}
 }
 \value{
 Vector of trait values after residual permuted
@@ -34,5 +34,5 @@ data(phenotype)
 trait<-"Trait.1"; covars="Age+Sex"
 permute_resids_trait(pheno=phenotype, trait=trait,
                      covariates_string=covars, 
-                     seed = NULL, outcome_type="continous")
+                     seed = NULL, outcome_type="continuous")
 }

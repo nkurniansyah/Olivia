@@ -27,7 +27,7 @@ mult_lm_count_mat(
 \item{log_transform}{One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)}
 }
 \value{
-Linear regression results as a data frame with columns geneID, beta.Trait.1,beta.Trait.1 ,se,chisq_stat,chisq_stat_df,p_value(join p-value),fdr_bh
+Linear regression results as a data frame with columns geneID, adjLogFC.Trait.1,adjLogFC.Trait.2 ,se,chisq_stat,chisq_stat_df,p_value(join p-value),fdr_bh
 }
 \description{
 Calculated associtation gene counts matrix with the pehonotype where each of gene counts on multiple traits

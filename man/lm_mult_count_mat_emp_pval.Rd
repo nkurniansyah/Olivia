@@ -13,7 +13,7 @@ lm_mult_count_mat_emp_pval(
   gene_IDs = NULL,
   seed = NULL,
   log_transform = "log_replace_half_min",
-  outcome_type = "continous"
+  outcome_type = "continuous"
 )
 }
 \arguments{
@@ -33,10 +33,10 @@ lm_mult_count_mat_emp_pval(
 
 \item{log_transform}{One of the transformations log_replace_half_min, log_add_min, log_add_0.5, or NULL (default)}
 
-\item{outcome_type}{continous and binary.Default is continous}
+\item{outcome_type}{continuous and binary.Default is continuous}
 }
 \value{
-Linear regression results as a data frame with columns geneID, beta.Trait1,beta.Trait1 ,se,
+Linear regression results as a data frame with columns geneID, adjLogFC.Trait1,adjLogFC.Trait2 ,se,
        chisq_stat,chisq_stat_df(degree of freedom),p_value(join p-value),emp_pvals,bh_emp_pvals
 }
 \description{
@@ -51,5 +51,5 @@ rnaseq_count_matrix<- rnaseq_count_matrix[rowSums(rnaseq_count_matrix)>0,]
 traits<-c("Trait.1","Trait.2")
 covars<- "Age+Sex"
 lm_mult_count_mat_emp_pval(count_matrix=rnaseq_count_matrix, pheno=phenotype, traits=traits, covariates_string=covars,
-                        outcome_type="continous")
+                        outcome_type="continuous")
 }
