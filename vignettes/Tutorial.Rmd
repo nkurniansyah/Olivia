@@ -281,7 +281,7 @@ Here we show how to perform differential expression analysis on selected transcr
 ```{r}
 set.seed(12)
 
-gene_names<-sample(rownames(clean_count_matrix),5)
+gene_names<-sample(rownames(clean_count_matrix),3)
 
 perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenotypes,
                                 trait, covariates_string,n_permute=100000,
