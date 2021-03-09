@@ -96,7 +96,7 @@ mult_lm_count_mat <- function(count_matrix, pheno, covariates_string, traits,
 #' @param n_permute number of computing residual permutation. Default is 100 times
 #' @param seed Random seed
 #' @param outcome_type continuous and binary.Default is continuous
-#' @return Linear regression results as a data frame with columns geneID, beta.Trait1,beta.Trait1 ,se,
+#' @return Linear regression results as a data frame with columns geneID, adjLogFC.Trait1,adjLogFC.Trait2 ,se,
 #'        chisq_stat,chisq_stat_df(degree of freedom),p_value(join p-value),emp_pvals,bh_emp_pvals
 #'
 #' @examples
