@@ -20,7 +20,7 @@ library(Olivia)
 # Introduction
 Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies`` \url{https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract}. 
 
-# Installation and require packages
+# Installation and required packages
 
 To install, open R and type:
 ```{r eval=F, echo=T }
@@ -31,11 +31,10 @@ library(Olivia)
 
 ```
 
-Olivia require external packages from CRAN (dplyr) and Bioconductor(qvalue)
+Olivia requires external packages from CRAN (dplyr, ggplot2, tableone, reshape, and ggrepel) and Bioconductor(qvalue)
 
 ```{r eval=F, echo=T }
 install.packages("dplyr")
-
 ```
 
 Load packages
@@ -53,11 +52,10 @@ library(EnsDb.Hsapiens.v86)
 # Load example data
 
 ## Load raw gene counts matrix 
-First we load the transcripts, where were obtained from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151243. 
-Note: we reformatted the transcripts matrix into desired form and embedded them into Olivia package.
+First we load the transcripts. The transcripts were obtained from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151243. 
+Note: we reformatted the transcript matrix into desired form and embedded them into the Olivia package.
 
 ```{r}
-
 data(rnaseq_count_matrix)
 rnaseq_count_matrix[1:5,1:5]
 ```
@@ -70,13 +68,13 @@ data(phenotype)
 head(phenotype)
 ```
 
-## Summary phenotypes
+## Summarize phenotypes
 
-We create table of the summary of the phenotype.
+We create a table summarizing the phenotypes.
 
 ```{r}
-summary_phen<- summary_phenotype(pheno = phenotype,categorical_variable = c("Sex"),
-                                 numeric_variable = c("Age","Trait.1","Trait.2"),
+summary_phen<- summarize_phenotypes(pheno = phenotype,categorical_variables = c("Sex"),
+                                 numeric_variables = c("Age","Trait.1","Trait.2"),
                                  strata = "Race")
 summary_phen
 
@@ -111,7 +109,7 @@ phenotypes <- phenotype[match(IDs_both,rownames(phenotype)),]
 
 ## Residual plot of the trait
 
-After defining the trait of interest and covariates to adjust to the model, we now need to see how the trait's residual distribution.
+After defining the trait of interest and covariates to adjust to the model, it is helpful to look at the trait's residual distribution.
 
 ```{r}
 
@@ -121,7 +119,7 @@ resid_plot<- residual_plot(pheno = phenotype, traits = trait,
 resid_plot
 
 ```
-
+Here, the residuals' distribution has short tails. 
 
 # Normalize the RNA-seq dataset
 
@@ -130,17 +128,29 @@ We use median normalization in Olivia to reduce package dependencies. However, u
 
 
 ## Median normalization
-
+After median normalization, the sum of the gene expression values over all transcripts is the same across individuals. 
 ```{r}
 
-median_norm<- median_normalization(rnaseq_matrix)
+median_norm <- median_normalization(rnaseq_matrix)
 
+xrange <- range(colSums(rnaseq_matrix))
+par(mfrow = c(1,2))
+hist(colSums(rnaseq_matrix), 
+     xlim = xrange, 
+     main = "",
+     xlab = "Before median normalization",
+     ylab = "Library size distribution")
+hist(colSums(median_norm), 
+     xlim = xrange, 
+     main = "",
+     xlab = "After median normalization",
+     ylab = "Library size distribution")
 ```
 
 
 # Filtering transcripts
 
-Remove lowly express gene counts
+Remove lowly expressed genes
 
 ```{r}
 clean_count_matrix <- apply_filters(count_matrix = median_norm, 
@@ -155,7 +165,7 @@ clean_count_matrix <- apply_filters(count_matrix = median_norm,
 ```
 
 
-After filtering gene counts, there are `r nrow(clean_count_matrix)` remaining for differential expression analysis. s. The plot below illustrates the proportion of transcripts/genes in the “12N_S27_L006_R1_001” sample (selected randomly) before and after filtering.
+After filtering genes, there are `r nrow(clean_count_matrix)` remaining for differential expression analysis. The plot below illustrates the proportion of transcripts/genes in the “12N_S27_L006_R1_001” sample (selected randomly) before and after filtering.
 
 
 ```{r warning=FALSE}
@@ -171,7 +181,7 @@ plot(density(log_replace_half_min(clean_count_matrix)[,"12N_S27_L006_R1_001"]),
 ```
 
 
-The figure below shows the distribution of genes or transcripts in the sample in a boxplot after filtering.
+The figure below shows the distribution of transcript expressions (counts) in the sample in boxplots after filtering and after log transformation. 
 
 ```{r}
 
@@ -194,9 +204,9 @@ box_plot
 
 ```
 
-# Perform Transcriptome-wide association study
+# Perform transcriptome-wide association study
 
-We show how we perform differential expression analysis (Transcriptome-wide association study) on all transcripts using empirical p-value (quantile empirical p-values). To generate p-values under the null, we create a ``residual permuted`` trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey empirical p-value using test statistics, as these are referred to in the manuscript.
+We show how we perform differential expression analysis (Transcriptome-wide association study) on all transcripts using empirical p-value (quantile empirical p-values). To generate p-values under the null, we create a ``residual permuted`` trait 100 times, perform differential expression analysis, and use the resulting p-values as our null p-values. However, users also can implement Storey empirical p-value (as these are referred to in the manuscript) using test statistics.
 
 
 ```{r}
@@ -212,7 +222,7 @@ quantile_emp_trascript<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotyp
 
 ## Add annotation
 
-We do not implement the annotation feature into the Olvia package. We will demonstrate how to create a function to add an annotation in a Transcriptome-wide association study. We will use  [EnsDb.Hsapiens.v86](http://bioconductor.org/packages/release/data/annotation/html/EnsDb.Hsapiens.v86.html)
+We do not implement the annotation feature into the Olvia package, to limit chances to run into compatibility issues as packages update. We here demonstrate how to create a function to add an annotation in a transcriptome-wide association study. We use  [EnsDb.Hsapiens.v86](http://bioconductor.org/packages/release/data/annotation/html/EnsDb.Hsapiens.v86.html)
 
 
 ```{r}
@@ -238,7 +248,7 @@ add_annotation<-function(deg_res){
 
 
 ```{r}
-quantile_emp_trascript<- add_annotation(quantile_emp_trascript)
+quantile_emp_trascript <- add_annotation(quantile_emp_trascript)
 head(quantile_emp_trascript)
 ```
 
@@ -246,21 +256,22 @@ head(quantile_emp_trascript)
 Now, we can obtain significant genes (the genes which have bh_emp_pvals < 0.05)
 
 ```{r}
-tophits<-quantile_emp_trascript[which(quantile_emp_trascript$bh_emp_pvals< 0.05),]
+tophits <- quantile_emp_trascript[which(quantile_emp_trascript$bh_emp_pvals< 0.05),]
 head(tophits)
 ```
-## Visualize up-regulated and down-regulated
-After completing the Transcriptome-wide association study, now we can visualize up-regulated and down-regulated genes using a volcano plot.
+## Visualize up-regulated and down-regulated transcripts
+After completing the transcriptome-wide association study, now we can visualize up-regulated and down-regulated genes using a volcano plot.
 
 
 ```{r}
-volcano<- volcano_plot(deg_res =quantile_emp_trascript,significant_threshold = 0.05 )
+volcano <- volcano_plot(deg_res = quantile_emp_trascript,
+                        significant_threshold = 0.05 )
 
 volcano
 ```
 
 ## Violin plot
-Looking at the results, we may want to see how the most significant or desired gene spread across the populations. We will visualize this using violin plots. Top gene has to match with row names in count matrix.
+Looking at the results, we may want to see how a transcript of interest (e.g. the most significantly-associated gene) distributes across population strata. We here visualize this using violin plots. The row names in the matrix of transcript counts and in the phenotype matrix have to match.
 
 
 ```{r}
@@ -274,8 +285,8 @@ violin_plot(pheno = phenotypes,strata = "Race",
 # Perform Association analysis for selected gene/s
 
 
-When testing only a handful of genes, we may not want to perform transcriptome-wide association analysis. Therefore, empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Additionally, we permute specific genes many times. 
-Here we show how to perform differential expression analysis on selected transcripts when computing a permutation p-value for each gene based on permutations for this gene only. We suggest running 100000 permutations.
+When testing only a handful of genes, we may not want to perform a transcriptome-wide association analysis. Therefore, empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Instead, we permute specific genes many times. 
+Here we show how to perform differential expression analysis on selected transcripts when computing a permutation p-value for each gene based on permutations for this gene only. We suggest running 100000 permutations, but more permutation are needed if higher precision in p-value computation is needed.
 
 
 ```{r}
@@ -296,10 +307,10 @@ head(perm_res)
 ```
 
 
-# Perform Transcriptome-wide association study  for multiple exposure
+# Perform Transcriptome-wide association study for multiple exposures
 
 
-We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) using multiple exposure. 
+We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) when testing association using multiple exposure at the same time. 
 
 ```{r}
 set.seed(12)
@@ -317,7 +328,7 @@ head(quantile_emp_multi)
 ```
 
 
-Now, we can obtain significant genes for Transcriptome-wide asssociations for multiple exposure (the genes which have bh_emp_pvals < 0.05)
+Now, we can identify significantly-associated genes based on transcriptome-wide associations using multiple exposures (the genes which have bh_emp_pvals < 0.05)
 
 ```{r}
 top_emp_multi<-quantile_emp_multi[quantile_emp_multi$bh_emp_pvals< 0.05,]

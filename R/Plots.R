@@ -1,9 +1,9 @@
 
 #' Title Residual plot
 #'
-#' @param traits Trait/s, the name of the exposure variable. The trait/s should be a column in pheno.
-#' @param pheno A data frame of phenotype, includes the trait and covariates
-#' @param covariates_string Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"
+#' @param traits Trait/s, the name of the exposure variable(s). The trait/s should be a column in pheno.
+#' @param pheno A data frame of phenotypes, includes the trait and covariates
+#' @param covariates_string Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age+as.factor(sex)"
 #' @return residual plot
 #'
 #' @examples
@@ -26,8 +26,6 @@ residual_plot<- function(pheno, covariates_string, traits){
   
   for(trait in traits){
     fit<-lm(as.formula(paste(trait, paste(covariates_string), sep = " ~ ")), data=pheno)
-    
-    #fit<- lm(as.formula(paste(outcome , "~", cov_str)), data = com)
     resid<- data.frame(fit$residuals)
     colnames(resid)<-trait
     resid_out[[trait]]<-resid
@@ -40,21 +38,24 @@ residual_plot<- function(pheno, covariates_string, traits){
   head(resid_traits)
   
   message("Generate the residual plot...")
-  resid_plot<-ggplot(resid_traits, aes(value, fill=variable ))+geom_density(alpha=0.3)+ theme_bw() +ggtitle(paste0("Residual Plots"))+guides(fill=FALSE) 
+  resid_plot<-ggplot(resid_traits, aes(value, fill=variable )) +
+                  geom_density(alpha=0.3) + 
+                  theme_bw() +
+                  ggtitle(paste0("Residual Plots")) +
+                  guides(fill=FALSE) 
   
   return(resid_plot+ facet_wrap(~ variable, scales = "free"))
   
-
 }
 
 
-#' Title Summary phenotype
+#' Title Summarize phenotypes
 #'
-#' @param pheno  A data frame of phenotype, includes the trait and covariates
-#' @param categorical_variable  all selected categorical variable in model example: c("Sex", "Race")
-#' @param numeric_variable all selected numeric variable in model example: c("Age", "Trait.1", "Trait.2")
-#' @param strata Variable to stratified example: "Race"
-#' @return sumary phenotype 
+#' @param pheno  A data frame of phenotypes, includes the trait and covariates
+#' @param categorical_variables  all selected categorical variables in the model, example: c("Sex", "Race")
+#' @param numeric_variables all selected numeric variables in the model, example: c("Age", "Trait.1", "Trait.2")
+#' @param strata Variable to stratify, to example: "Race"
+#' @return summary table of phenotypes 
 #' @export
 #' @examples
 #' library(tableone)
@@ -62,20 +63,20 @@ residual_plot<- function(pheno, covariates_string, traits){
 #' categorical_variable<-c("Sex","Race")
 #' numeric_variable<-c("Age","Trait.1","Trait.2")
 #' strata<-"Race"
-#' summary_phenotype(pheno=phenotype, categorical_variable =categorical_variable,  numeric_variable=numeric_variable, strata=strata)
+#' summarize_phenotypes(pheno=phenotype, categorical_variables =categorical_variables,  numeric_variables=numeric_variables, strata=strata)
 
-summary_phenotype<- function(pheno, categorical_variable, numeric_variable, strata){
+summarize_phenotypes <- function(pheno, categorical_variables, numeric_variables, strata){
   
-  stopifnot(is.element(categorical_variable, colnames(pheno)))
+  stopifnot(is.element(categorical_variables, colnames(pheno)))
   
-  stopifnot(is.element(numeric_variable, colnames(pheno)))
+  stopifnot(is.element(numeric_variables, colnames(pheno)))
   
 
-  all_variable<- c(categorical_variable,numeric_variable )
+  all_variables <- c(categorical_variables,numeric_variables )
   
-  message(paste(c("Generate summary phnotype using",all_variable ),collapse = " "))
+  message(paste(c("Generate summary of phenotype using",all_variables ),collapse = " "))
   
-  tableOne <- CreateTableOne(vars =all_variable,strata =strata ,data = pheno, factorVars = categorical_variable, test=F, )
+  tableOne <- CreateTableOne(vars =all_variables,strata =strata ,data = pheno, factorVars = categorical_variables, test=F, )
 
   return(tableOne)
   
