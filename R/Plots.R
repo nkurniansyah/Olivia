@@ -1,5 +1,4 @@
 
-#' Title Residual plot
 #'
 #' @param traits Trait/s, the name of the exposure variable(s). The trait/s should be a column in pheno.
 #' @param pheno A data frame of phenotypes, includes the trait and covariates
@@ -63,7 +62,7 @@ residual_plot<- function(pheno, covariates_string, traits){
 #' categorical_variable<-c("Sex","Race")
 #' numeric_variable<-c("Age","Trait.1","Trait.2")
 #' strata<-"Race"
-#' summarize_phenotypes(pheno=phenotype, categorical_variables =categorical_variables,  numeric_variables=numeric_variables, strata=strata)
+#' summarize_phenotypes(pheno=phenotype, categorical_variables =categorical_variable,  numeric_variables=numeric_variable, strata=strata)
 
 summarize_phenotypes <- function(pheno, categorical_variables, numeric_variables, strata){
   
@@ -83,8 +82,6 @@ summarize_phenotypes <- function(pheno, categorical_variables, numeric_variables
 }
 
 
-
-## violin plot
 
 
 #' Title Violin plot
