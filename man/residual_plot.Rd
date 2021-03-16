@@ -2,22 +2,22 @@
 % Please edit documentation in R/Plots.R
 \name{residual_plot}
 \alias{residual_plot}
-\title{Title Residual plot}
+\title{Title Residual Plot}
 \usage{
 residual_plot(pheno, covariates_string, traits)
 }
 \arguments{
-\item{pheno}{A data frame of phenotype, includes the trait and covariates}
+\item{pheno}{A data frame of phenotypes, includes the trait and covariates}
 
-\item{covariates_string}{Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"}
+\item{covariates_string}{Characters string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age+as.factor(sex)"}
 
-\item{traits}{Trait/s, the name of the exposure variable. The trait/s should be a column in pheno.}
+\item{traits}{Trait/s, the name of the exposure variable(s). The trait/s should be a column in pheno.}
 }
 \value{
 residual plot
 }
 \description{
-Title Residual plot
+Title Residual Plot
 }
 \examples{
 library(ggplot2)
