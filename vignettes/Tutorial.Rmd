@@ -35,6 +35,7 @@ Olivia requires external packages from CRAN (dplyr, ggplot2, tableone, reshape, 
 
 ```{r eval=F, echo=T }
 install.packages("dplyr")
+
 ```
 
 Load packages
@@ -73,9 +74,10 @@ head(phenotype)
 We create a table summarizing the phenotypes.
 
 ```{r}
-summary_phen<- summarize_phenotypes(pheno = phenotype,categorical_variables = c("Sex"),
-                                 numeric_variables = c("Age","Trait.1","Trait.2"),
-                                 strata = "Race")
+summary_phen<- summarize_phenotypes(pheno = phenotype,
+                                    categorical_variables = c("Sex"),
+                                    numeric_variables = c("Age","Trait.1","Trait.2"),
+                                    strata = "Race")
 summary_phen
 
 ```
@@ -113,7 +115,8 @@ After defining the trait of interest and covariates to adjust to the model, it i
 
 ```{r}
 
-resid_plot<- residual_plot(pheno = phenotype, traits = trait,
+resid_plot<- residual_plot(pheno = phenotype, 
+                           traits = trait,
                            covariates_string = covariates_string)
 
 resid_plot
@@ -190,7 +193,8 @@ log_counts<-melt(log_counts)
 
 box_plot<- ggplot(log_counts, aes(x = Var2, y = value)) + 
                   stat_boxplot(aes(Var2, value), 
-                  geom='errorbar', linetype=1, width=0.5)+ xlab("Sample")+ 
+                  geom='errorbar', linetype=1, width=0.5)+ 
+                  xlab("Sample")+ 
                   ylab("log(Transcripts)")+ 
                   geom_boxplot( aes(Var2, value),outlier.shape=1)+
                   stat_summary(fun = mean, geom = "errorbar", 
@@ -212,10 +216,14 @@ We show how we perform differential expression analysis (Transcriptome-wide asso
 ```{r}
 set.seed(12)
 
-quantile_emp_trascript<-lm_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, trait,
-                                              covariates_string,n_permute=100,
+quantile_emp_trascript<-lm_count_mat_emp_pval(clean_count_matrix, 
+                                              pheno=phenotypes, 
+                                              trait=trait,
+                                              covariates_string=covariates_string,
+                                              n_permute=100,
                                               log_transform = "log_replace_half_min",
-                                              outcome_type ="continuous",gene_IDs=NULL)
+                                              outcome_type ="continuous",
+                                              gene_IDs=NULL)
 
 
 ```
@@ -250,6 +258,7 @@ add_annotation<-function(deg_res){
 ```{r}
 quantile_emp_trascript <- add_annotation(quantile_emp_trascript)
 head(quantile_emp_trascript)
+
 ```
 
 
@@ -261,7 +270,6 @@ head(tophits)
 ```
 ## Visualize up-regulated and down-regulated transcripts
 After completing the transcriptome-wide association study, now we can visualize up-regulated and down-regulated genes using a volcano plot.
-
 
 ```{r}
 volcano <- volcano_plot(deg_res = quantile_emp_trascript,
@@ -277,12 +285,13 @@ Looking at the results, we may want to see how a transcript of interest (e.g. th
 ```{r}
 
 top_gene<- "ENSG00000000005" 
-violin_plot(pheno = phenotypes,strata = "Race",
+violin_plot(pheno = phenotypes,
+            strata = "Race",
             norm_count_matrix  = clean_count_matrix,
             selected_transcript = top_gene)
 ```
 
-# Perform Association analysis for selected gene/s
+# Perform association analysis for selected gene/s
 
 
 When testing only a handful of genes, we may not want to perform a transcriptome-wide association analysis. Therefore, empirical p-values using the quantile or Storey's approach cannot be computed (not enough tests to generate the null distribution). Instead, we permute specific genes many times. 
@@ -294,11 +303,15 @@ set.seed(12)
 
 gene_names<-sample(rownames(clean_count_matrix),3)
 
-perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix, pheno=phenotypes,
-                                trait, covariates_string,n_permute=100000,
-                                 gene_IDs=gene_names,seed = NULL,
-                                 log_transform = "log_replace_half_min",
-                                 outcome_type ="continuous")
+perm_res<- lm_count_mat_perm_pval(count_matrix=clean_count_matrix,
+                                  pheno=phenotypes,
+                                  trait=trait, 
+                                  covariates_string=covariates_string,
+                                  n_permute=100000,
+                                  gene_IDs=gene_names,
+                                  seed = NULL,
+                                  log_transform = "log_replace_half_min",
+                                  outcome_type ="continuous")
 
 perm_res<-add_annotation(perm_res)
 
@@ -307,7 +320,7 @@ head(perm_res)
 ```
 
 
-# Perform Transcriptome-wide association study for multiple exposures
+# Perform transcriptome-wide association study for multiple exposures
 
 
 We show how we perform differential expression analysis on all transcripts using emprical p-value(quantile empirical p-values) when testing association using multiple exposure at the same time. 
@@ -315,9 +328,11 @@ We show how we perform differential expression analysis on all transcripts using
 ```{r}
 set.seed(12)
 
-quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, pheno=phenotypes, 
+quantile_emp_multi<-lm_mult_count_mat_emp_pval(clean_count_matrix, 
+                                               pheno=phenotypes, 
                                                traits=c("Trait.1","Trait.2") ,
-                                               covariates_string,n_permute=100,
+                                               covariates_string=covariates_string,
+                                               n_permute=100,
                                                gene_IDs=NULL,
                                                log_transform = "log_replace_half_min", 
                                                outcome_type="continuous")
