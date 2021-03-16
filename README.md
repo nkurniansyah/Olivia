@@ -167,6 +167,7 @@ resid_plot
 ```
 
 ![plot of chunk unnamed-chunk-37](figure/unnamed-chunk-37-1.png)
+
 Here, the residuals' distribution has short tails. 
 
 # Normalize the RNA-seq dataset
