@@ -544,7 +544,7 @@ head(top_emp_multi)
 
 Olivia is available in the shiny app. This app will be run locally using gist.github.com to avoid memory problems when users try to run an analysis using large samples and transcripts or gene count.
 
-To run Olivia's shiny app, users need to have at least R/4.0.0 above installed. Also, User needs to install few R packages and load them every time the user wants to run the app. Users need to run R code below every time they want to run Olivia using shiny app.
+To run Olivia's shiny app, users need to have R/4.0.0 or above installed. Also, User needs to install few R packages and load them every time the user wants to run the app. Users need to run R code below every time they want to run Olivia using shiny app.
 
 ```r
 
