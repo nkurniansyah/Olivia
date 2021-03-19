@@ -14,7 +14,7 @@ output:
 
 
 # Introduction
-Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies``https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract. [Olivia](#running-olivia-using-shinny-app) also available in shiny app
+Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies``https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract. [Olivia](#running-olivia-using-an-R-Shiny-app) also available in shiny app
 
 # Installation and required packages
 
@@ -540,11 +540,11 @@ head(top_emp_multi)
 ```
 
 
-# Running Olivia using shinny app
+# Running Olivia using an R Shiny app
 
-Olivia is available in the shiny app. This app will be run locally using gist.github.com to avoid memory problems when users try to run an analysis using large samples and transcripts or gene count.
+Olivia is available as a Shiny app. This app will run locally on your computer using gist.github.com to avoid potential memory problems when users try to run an analysis using large samples and transcripts/gene counts.
 
-To run Olivia's shiny app, users need to have R/4.0.0 or above installed. Also, User needs to install few R packages and load them every time the user wants to run the app. Users need to run R code below every time they want to run Olivia using shiny app.
+To run Olivia's shiny app, users need to have R/4.0.0 or above installed. Also, users need to install few R packages and load them before running the app. Please run the R code below before every use of the Olivia Shiny app.
 
 ```r
 
