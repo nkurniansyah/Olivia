@@ -540,5 +540,50 @@ head(top_emp_multi)
 ```
 
 
+# Running Olivia using Shinny app
+
+Olivia is available in the shiny app. This app will be run locally using gist.github.com to avoid memory problems when users try to run an analysis using large samples and transcripts or gene count.
+
+To run Olivia's shiny app. Users need to have at least R/4.0.0 above installed. Also, the user needs to install few R packages and load them every time the user wants to run the app. Users need to run code in R below every time they want to run Olivia using the shiny app.
+
+```r
+
+
+# CRAN
+install_cran_package <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, library, character.only = TRUE)
+}
+
+list_packages_cran <- c("shiny","progress","shinyjs","shinythemes","scales",
+                      "kableExtra","gridExtra","shinyFiles","DT","grid","data.table",
+                      "plyr","tableone","reshape","BiocManager","ggrepel","dplyr","tidyverse")
+
+install_cran_package(list_packages_cran)
+
+
+# Biocoductor
+
+# Bioconductor
+install_bioconductor_package <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    BiocManager::install(new.pkg, dependencies = TRUE)
+  sapply(pkg, library, character.only = TRUE)
+}
+
+list_packages_bioconductor <- c("EnsDb.Hsapiens.v86","fgsea")
+
+install_bioconductor_package(list_packages_bioconductor)
+
+
+# Run shiny:
+
+shiny::runGist("ca33e0b4099ef0ca6330740a6b98be83")
+
+
+```
 
 
