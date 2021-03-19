@@ -564,8 +564,6 @@ list_packages_cran <- c("shiny","progress","shinyjs","shinythemes","scales",
 install_cran_package(list_packages_cran)
 
 
-# Biocoductor
-
 # Bioconductor
 install_bioconductor_package <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
