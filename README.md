@@ -540,7 +540,7 @@ head(top_emp_multi)
 ```
 
 
-# Running Olivia using Shinny app
+# Running Olivia using shinny app
 
 Olivia is available in the shiny app. This app will be run locally using gist.github.com to avoid memory problems when users try to run an analysis using large samples and transcripts or gene count.
 
