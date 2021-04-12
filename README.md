@@ -548,7 +548,7 @@ Olivia is available as a Shiny app. This app will run locally on your computer u
 
 To run Olivia's shiny app, users need to have R/4.0.0 or above installed. Also, users need to install few R packages and load them before running the app. 
 
-# Example files (optional)
+## Example files (optional)
 You can download the example files from the tutorial on the Shiny app. Alternatively, you can install the Olivia R package, and save the example files as follows:
 
 ```{r, eval = FALSE}
@@ -556,9 +556,8 @@ library(Olivia)
 write.table(get(data("rnaseq_count_matrix")), file = "rnaseq_count_matrix.txt", quote = FALSE)
 write.csv(get(data("phenotype")), file = "phenotypes.csv")
 ```
-
+## Executing
 Please run the R code below before every use of the Olivia Shiny app.
-
 
 ```r
 
