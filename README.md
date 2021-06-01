@@ -14,7 +14,7 @@ output:
 
 
 # Introduction
-Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies``https://www.biorxiv.org/content/10.1101/2021.02.12.430989v1.abstract. 
+Here we demonstrate how to perform association analyses of continuous phenotypes using the Olivia package with RNA-seq data based on the pipeline proposed in the manuscript ``Benchmarking Association Analyses of Continuous Exposures with RNA-seq in Observational Studies``https://academic.oup.com/bib/advance-article-abstract/doi/10.1093/bib/bbab194/6278609. 
 
 [Click here for instructions on using Olivia as a Shiny app.](#running-olivia-using-an-R-Shiny-app)
 
