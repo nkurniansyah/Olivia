@@ -11,11 +11,17 @@ test_that("Residual permutation function trait continous", {
   
   perm_resid<-permute_resids_trait(pheno = pheno,trait = trait,
                                    seed = NULL,covariates_string =covariates,
-                                   outcome_type  = "continous")
+                                   outcome_type  = "continuous")
+  
   
   expect_true(all(names(perm_resid) %in% rownames(pheno)), TRUE)
   
+  pheno$binary_out <- rbinom(nrow(pheno), 1, pheno$Age/max(pheno$Age))
+  sampled_binary_out <- permute_resids_trait(pheno = pheno,trait = "binary_out",
+                                   seed = NULL,covariates_string =covariates,
+                                   outcome_type  = "binary")
   
+  expect_true(all(sampled_binary_out %in% c(0,1)), TRUE)
 })
 
 

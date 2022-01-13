@@ -1,8 +1,8 @@
 #' Fast linear regression
 #'
-#' Calculated associtation single gene count with multiple residual permutation as outcome
+#' Calculated association single gene count with multiple residual permutation as outcome
 #'
-#' @param residual_permutation Matrix of residual of permuation
+#' @param residual_permutation Matrix of residuals of permutation
 #' @param covariates_string A character string with specifying the covariats, include "as.factor" statements. example: covariate_string = "age,as.factor(sex)"
 #' @param single_transcript  A vector of single transcript
 #' @param pheno Phenotype data, includes the trait and covariates.

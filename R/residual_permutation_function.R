@@ -36,20 +36,23 @@ permute_resids_trait <- function(pheno, trait, covariates_string, seed = NULL, o
   if(outcome_type=="continuous"){
     fit<- lm(as.formula(paste(trait, paste(covariates_string),sep = "~")), data = pheno)
 
+    # return fitted value + permuted residuals
+    return(fitted.values(fit) + sample(fit$resid))
+    
   }else if(outcome_type=="binary"){
 
     stopifnot(all(na.omit(pheno[,trait]) %in% 0:1))
 
     pheno[,trait]<-as.factor( pheno[,trait])
     fit<- glm(as.formula(paste(trait, paste(covariates_string),sep = "~")), family = binomial(link="logit"),data = pheno)
-
+    
+    # obtain estimated outcome probabilities
+    estimated_probs <- fitted.values(fit)
+    
+    # return sampled outcomes according to the estimated probabilities
+    return(rbinom(n = length(estimated_probs), size = 1, prob = estimated_probs))
   }
-  # get residual
-  resids <- fit$resid
-  #create sample permutations
-  resid_permuted <- sample(resids)
-  #get residual + fit values
-  resid_permuted + fitted.values(fit)
+ 
 }
 
 
