@@ -44,6 +44,12 @@ lm_count_mat <-function(count_matrix, pheno, trait, covariates_string,
 
   model_string <- paste0(covariates_string,"+",trait)
   XX<-model.matrix(as.formula(paste0("~", model_string)), data=pheno)
+  
+  if (nrow(XX) != nrow(count_matrix)){
+    message(paste( nrow(count_matrix) - nrow(XX), "samples have missing phenotypes, using", nrow(XX), "samples"))
+    count_matrix <- count_matrix[rownames(XX),]
+  }
+    
   XtXinv <- solve(t(XX) %*% as.matrix(XX))
   XtXinv_se_arg <- sqrt(XtXinv[trait,trait])
   numExplan <-ncol(XX)
@@ -106,6 +112,16 @@ lm_count_mat_emp_pval <-function(count_matrix, pheno, trait, covariates_string,
                                  outcome_type="continuous"){
 
   if (!is.null(seed)) set.seed(seed)
+  
+  stopifnot(colnames(count_matrix) == rownames(pheno), is.element(trait, colnames(pheno)))
+  model_string <- paste0(covariates_string,"+",trait)
+  XX<-model.matrix(as.formula(paste0("~", model_string)), data=pheno)
+  
+  if (nrow(XX) != ncol(count_matrix)){
+    message(paste( ncol(count_matrix) - nrow(XX), "samples have missing phenotypes, using", nrow(XX), "samples"))
+    count_matrix <- count_matrix[,rownames(XX)]
+    pheno <- pheno[rownames(XX),]
+  }
 
   deg <- lm_count_mat(count_matrix=count_matrix,
                       pheno=pheno,
